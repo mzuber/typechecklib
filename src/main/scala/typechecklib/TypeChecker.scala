@@ -61,7 +61,9 @@ trait TypeChecker {
     val tv = TypeVariable();
 
     for ( σ <- computeType(Judgement(new Context, expr, tv)).right )
-    yield σ(tv)
+    yield {
+      σ[Type](tv)
+    }
   }
 
 
@@ -72,7 +74,7 @@ trait TypeChecker {
     val tv = TypeVariable();
 
     for ( σ <- computeType(Judgement(ctx, expr, tv)).right )
-    yield σ(tv)
+    yield σ[Type](tv)
   }
 
 

@@ -54,7 +54,7 @@ trait TreeTraversal {
 /**
   * Pre-order depth-first traversal of a deduction tree.
   */
-object DepthFirstPreOrder extends TreeTraversal {
+trait DepthFirstPreOrder extends TreeTraversal {
 
   def flatten(tree: ConstraintTree): List[Constraint] = {
     val constraints = new ListBuffer[Constraint]()
@@ -68,7 +68,7 @@ object DepthFirstPreOrder extends TreeTraversal {
 /**
   * Post-order depth-first traversal of a deduction tree.
   */
-object DepthFirstPostOrder extends TreeTraversal {
+trait DepthFirstPostOrder extends TreeTraversal {
 
   def flatten(tree: ConstraintTree): List[Constraint] = {
     val constraints = new ListBuffer[Constraint]()
@@ -82,7 +82,7 @@ object DepthFirstPostOrder extends TreeTraversal {
 /**
   * Breadth-first traversal of a deduction tree.
   */
-object BreadthFirst extends TreeTraversal {
+trait BreadthFirst extends TreeTraversal {
 
   def flatten(tree: ConstraintTree): List[Constraint] = {
     val constraints = new ListBuffer[Constraint]()
@@ -97,7 +97,7 @@ object BreadthFirst extends TreeTraversal {
 /**
   * Bottom-up traversal of a deduction tree.
   */
-object BottomUp extends TreeTraversal {
+trait BottomUp extends TreeTraversal {
 
   def flatten(tree: ConstraintTree): List[Constraint] = {
     val constraints = new ListBuffer[Constraint]()
@@ -112,7 +112,7 @@ object BottomUp extends TreeTraversal {
 /**
   * Top-down traversal of a deduction tree.
   */
-object TopDown extends TreeTraversal {
+trait TopDown extends TreeTraversal {
 
   def flatten(tree: ConstraintTree): List[Constraint] = {
     val constraints = new ListBuffer[Constraint]()

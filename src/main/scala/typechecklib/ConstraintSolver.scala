@@ -57,7 +57,7 @@ trait ConstraintSolver {
   * 
   * This solver tries to solve constraints in the given order.
   */
-object LinearConstraintSolver extends ConstraintSolver {
+trait LinearConstraintSolver extends ConstraintSolver {
 
   /**
     *  Solve the generated constraints and return the possibly arisen

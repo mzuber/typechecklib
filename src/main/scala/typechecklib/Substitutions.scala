@@ -60,13 +60,13 @@ object Substitutions {
     /**
       * Apply this substitution to an element and all its children. 
       */
-    def apply[T](e: T): T = {
+    def apply[T](elem: T): T = {
       val var2Term = rule {
-	case v: TypeVariable => sub.getOrElse(v, v)
+	case tv: TypeVariable => sub.getOrElse(tv, tv)
       }
       
-      everywhere(var2Term)(e).getOrElse(e) match {
-	case e: T @unchecked => e
+      everywhere(var2Term)(elem).getOrElse(elem) match {
+	case t: T @unchecked => t
       }
     }
 
