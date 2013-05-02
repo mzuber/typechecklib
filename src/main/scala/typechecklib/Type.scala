@@ -116,10 +116,15 @@ object Types {
 
 
   /**
+    * An object for bottom types.
+    */
+  case object Bottom extends Type
+
+
+  /**
     * A class for type variables.
     */
-  case class TypeVariable(ide: Ide) extends Type {
-  }
+  case class TypeVariable(ide: Ide) extends Type
 
   /**
     * A type variable with a fresh name.

@@ -31,7 +31,7 @@
 
 package typechecklib
 
-import typechecklib.Types.{Type, TypeVariable}
+import typechecklib.Types.{Type, TypeVariable, Bottom}
 
 
 /**
@@ -48,14 +48,17 @@ case class Context(ctx: Map[Any, Type]) {
   def this(elems: (Any, Type)*) = this(elems.toMap)
 
   /**
-    * Lookup the type of an expression in the context.
+    * Lookup the type of an expression in this context.
+    *
+    * @return The type of the given expressions, if it is contained
+    *         as a key in the context. The bottom type otherwise.
     */
-  def apply(exp: Any) = ctx(exp)
+  def apply(exp: Any): Type = ctx.getOrElse(exp, Bottom)
 
   /**
-    * Insert a new mapping into the context.
+    * Insert a new mapping into this context.
     */
-  def +(mapping: (Any, Type)) = Context(ctx + mapping)
+  def +(mapping: (Any, Type)): Context = Context(ctx + mapping)
 
   /**
     * Collect all type variables occuring free in the type terms stored in this context.
