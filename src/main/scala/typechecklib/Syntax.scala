@@ -75,6 +75,22 @@ object Syntax {
 
 
   /**
+    * A class for deferring binary auxiliary function calls in deduction rules.
+    */
+  case class MetaFun2[S1, S2, T](f: Function2[S1, S2, T], args: (S1, S2)) {
+    def apply(): T = f(args._1, args._2)
+  }
+
+
+  /**
+    * A class for deferring ternary auxiliary function calls in deduction rules.
+    */
+  case class MetaFun3[S1, S2, S3, T](f: Function3[S1, S2, S3, T], args: (S1, S2, S3)) {
+    def apply(): T = f(args._1, args._2, args._3)
+  }
+
+
+  /**
     * Evaluate all meta-level auxiliary functions encapsulated in the given term.
     *
     * @param term A term which might encapsulate a meta-level function call.

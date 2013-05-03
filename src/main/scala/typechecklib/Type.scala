@@ -185,6 +185,14 @@ object Types {
 
 
   /**
+    * A class for binary auxiliary functions in deduction rules which evaluate to a type.
+    */
+  case class TypeFunction2[S, T](f: MetaFun2[S, T, Type]) extends Type {
+    def apply() = f.apply
+  }
+
+
+  /**
     * A class for auxiliary functions in deduction rules which evaluate to a type.
     */
   case class TypeFunction[T <: Product](f: MetaFun[T, Type]) extends Type {
