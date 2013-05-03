@@ -58,6 +58,8 @@ object Substitutions {
 
 
     /**
+      * Generic application of this substitution.
+      * 
       * Apply this substitution to an element and all its children. 
       */
     def apply[T](elem: T): T = {

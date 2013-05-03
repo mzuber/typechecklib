@@ -41,7 +41,6 @@ import typechecklib.Rules._
 import typechecklib.Errors._
 import typechecklib.ConstraintGeneration._
 import typechecklib.Substitutions.Substitution
-import typechecklib.Unification.unify
 
 import ExampleRules._
 
