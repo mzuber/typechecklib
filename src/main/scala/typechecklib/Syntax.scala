@@ -33,7 +33,7 @@ package typechecklib
 
 import scala.language.implicitConversions
 
-import typechecklib.Types.{TypeFunction, TypeFunction1}
+import typechecklib.Types.{TypeFunction, TypeFunction1, TypeFunction2}
 
 import org.kiama.rewriting.Rewriter._
 
@@ -107,8 +107,9 @@ object Syntax {
   }
 
   private def evalTypeFunction: PartialFunction[Term, Term] = {
-    case f: TypeFunction1[_] => f.apply
-    case f: TypeFunction[_]  => f.apply
+    case f: TypeFunction1[_]    => f.apply
+    case f: TypeFunction2[_, _] => f.apply
+    case f: TypeFunction[_]     => f.apply
   }
 
 }
