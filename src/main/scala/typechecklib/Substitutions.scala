@@ -63,23 +63,26 @@ object Substitutions {
       * Apply this substitution to an element and all its children. 
       */
     def apply[T](elem: T): T = {
-      val var2Term = rule {
-	case tv: TypeVariable => sub.getOrElse(tv, tv)
-      }
+      val applySubst = rule { case tv: TypeVariable => sub.getOrElse(tv, tv) }
       
-      everywhere(var2Term)(elem).getOrElse(elem) match {
+      everywhere(applySubst)(elem).getOrElse(elem) match {
 	case t: T @unchecked => t
       }
     }
 
     
     /**
-      * Composition of two Substitutions.
+      * Composition of substitutions, defined as
+      *{{{
+      * σ ++ φ = v |-> σ(t), for φ(v) = t
+      *          v |-> t   , for σ(v) = t and v is not element in the domain of φ
+      * }}}
       */
     def ++(that: Substitution): Substitution = {
-      val newThat = that.sub.mapValues(this.apply(_))
       // Note: Map.++ is right-biased
-      Substitution(newThat ++ this.sub)
+      val composedSubstitutions = (this.sub -- that.keys) ++ that.sub.mapValues(this(_))
+      
+      Substitution(composedSubstitutions)
     }
 
 
