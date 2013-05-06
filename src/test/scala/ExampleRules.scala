@@ -55,9 +55,9 @@ object ExampleRules {
    *       ----------- (Var)
    *        Γ ⊢ x : T
    */
-  case class VarRule(ctx: Context, x: Var, t: Type) extends Rule {
+  case class VarRule(ctx: Context, x: Var, t: Type) extends Axiom {
 
-    Nil ==> ctx ⊢ x <:> t | t =:= ctx(x)
+    ctx ⊢ x <:> t | t =:= ctx(x)
 
     override val name = "Var"
   }
