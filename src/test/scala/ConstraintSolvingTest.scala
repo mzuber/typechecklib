@@ -39,7 +39,6 @@ import typechecklib._
 import typechecklib.Types._
 import typechecklib.Rules._
 import typechecklib.Errors._
-import typechecklib.ConstraintGeneration._
 import typechecklib.Substitutions.Substitution
 
 import ExampleRules._
@@ -48,7 +47,7 @@ import ExampleRules._
 /**
   * Test suite for the constraint solver module.
   */
-class ConstraintSolvingTest extends FunSuite with BeforeAndAfter with ShouldMatchers {
+class ConstraintSolvingTest extends FunSuite with BeforeAndAfter with ShouldMatchers with ReflectionBasedConstraintGeneration {
 
   /*
    * Reset the name supply before running each test case.
@@ -95,7 +94,7 @@ class ConstraintSolvingTest extends FunSuite with BeforeAndAfter with ShouldMatc
 	val tv = TypeVariable()
 	val judgement = Judgement(context, term, tv)
 
-	for ( constraintTree <- typeDerivation(rules, judgement).right ;
+	for ( constraintTree <- typeDerivation(judgement).right ;
 	      σ <- Solver.solveConstraints(Traversal.flatten(constraintTree)).right )
 	yield σ[Type](tv)
       }

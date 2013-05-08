@@ -130,10 +130,10 @@ object Rules {
       * c | List(c_1, ... , c_n)
       * }}}
       */
-    protected implicit class AxiomBuilder(judgement: Judgement) {
+    protected implicit class AxiomBuilder(c: Judgement) {
       
       def |(cs: Constraint*) {
-	conclusion = judgement
+	conclusion = c
 	constraints = cs.toList
       }
     }

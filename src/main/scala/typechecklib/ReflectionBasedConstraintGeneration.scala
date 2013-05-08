@@ -31,64 +31,61 @@
 
 package typechecklib
 
-import scala.util.Either.cond
-
-import typechecklib.Types._
 import typechecklib.Rules._
 import typechecklib.Errors._
-import typechecklib.Substitutions.Substitution
-import typechecklib.Unification.unify
 
 
 /**
-  * A trait for defining type checkers based on a list of inference rules
+  * A trait using runtime reflection to find a matching rule during constraint generation.
   */
-trait TypeChecker {
-
-  this: ConstraintGeneration with TreeTraversal with ConstraintSolver =>
+trait ReflectionBasedConstraintGeneration extends ConstraintGeneration {
 
   /**
-    * Compute the type of an expression.
+    * The type rules.
     */
-  def computeType[T](expr: T): Either[Error, Type] = {
-    val tv = TypeVariable();
+  val rules: List[reflect.runtime.universe.Type]
 
-    for ( σ <- computeType(Judgement(new Context, expr, tv)).right )
-    yield {
-      σ[Type](tv)
-    }
+
+  /**
+    * Instantiate the corresponding type rule for the given judgement.
+    */
+  def instantiateRule(judgement: Judgement): Option[Rule] = {
+
+    var ruleInstance: Option[Rule] = None
+
+    rules.find(rule => { ruleInstance = instantiateRule(rule, judgement.ctx, judgement.expr, judgement.ty) ; ruleInstance.isDefined })
+
+    ruleInstance
   }
 
 
   /**
-    * Compute the type of an expression with respect to the given initial context.
-    */
-  def computeType[T](ctx: Context, expr: T): Either[Error, Type] = {
-    val tv = TypeVariable();
-
-    for ( σ <- computeType(Judgement(ctx, expr, tv)).right )
-    yield σ[Type](tv)
-  }
-
-
-  /**
-    * Start the library's type-check engine for the given judgement.
-    */
-  private def computeType(judgement: Judgement): Either[Error, Substitution] = {
-    for ( constraintTree <- typeDerivation(judgement).right ;
-	  σ <- solveConstraints(flatten(constraintTree)).right )
-    yield σ
-  }
-
-
-  /**
-    * Compute the type of a given expression and check if the computed type matches the given one.
+    * Creates an instance of the given [[typechecklib.Rules.Rule Rule]] type at runtime.
     *
-    * @return A TypeCheckError, if the inferred type does not match the exptected one.
+    * @return None, if instantiating the rule fails. Otherwise the instantiated rule
+    *         wrapped up in a Some.
     */
-  def checkType[T](expr: T, expectedType: Type): Either[Error, Type] = {
-    for ( exprType <- computeType(expr).right ;
-          _ <- cond(unify(expectedType, exprType)._1, exprType, TypeCheckError(expectedType, exprType)).right )
-    yield exprType
+  def instantiateRule(t: reflect.runtime.universe.Type, args: Any*): Option[Rule] = {
+    import scala.reflect.runtime.{ currentMirror => m, universe => uni }
+    import uni.{Type => ReflectionType, _}
+    import java.lang.Throwable
+
+    val ttag = t
+    val ctor = ttag.member(nme.CONSTRUCTOR).asTerm
+    if (ctor.isOverloaded) throw new Exception("don't know how to disambiguate")
+
+    val c = ttag.typeSymbol.asClass
+    val mm = m.reflectClass(c).reflectConstructor(ctor.asMethod)
+    //	  val f = mm.symbol.asMethod.paramss
+    //	  println(f)
+    try {
+      val v = mm.apply(args: _*) match {
+        case x: Rule => Some(x)
+        case _ => None
+      }
+      return v
+    } catch {
+      case e: Throwable => None
+    } 
   }
 }

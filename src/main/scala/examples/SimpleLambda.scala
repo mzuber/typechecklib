@@ -104,7 +104,7 @@ object SimpleLambda {
   /*
    * The type checker.
    */
-  object LambdaTypeChecker extends TypeChecker with DepthFirstPreOrder with LinearConstraintSolver {
+  object LambdaTypeChecker extends TypeChecker with ReflectionBasedConstraintGeneration with DepthFirstPreOrder with LinearConstraintSolver {
     import scala.reflect.runtime.universe.typeOf
 
     val rules = List(typeOf[VarRule], typeOf[AbsRule], typeOf[AppRule])

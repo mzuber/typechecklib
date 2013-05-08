@@ -37,7 +37,6 @@ import org.scalatest.BeforeAndAfter
 import typechecklib._
 import typechecklib.Types._
 import typechecklib.Rules._
-import typechecklib.ConstraintGeneration._
 import typechecklib.Syntax._
 import typechecklib.Constraints._
 
@@ -47,7 +46,7 @@ import ExampleRules._
 /**
   * Test suite for the constraint tree traversal module.
   */
-class FlatteningTest extends FunSuite with BeforeAndAfter {
+class FlatteningTest extends FunSuite with BeforeAndAfter with ReflectionBasedConstraintGeneration {
 
   /*
    * Reset the name supply before running each test case.
@@ -95,7 +94,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter {
 
     val judgement = Judgement(context, Const(42), TypeVariable())
 
-    assert(DepthFirstPreOrderTraversal.flatten(typeDerivation(rules, judgement).right.get) === constraintList)
+    assert(DepthFirstPreOrderTraversal.flatten(typeDerivation(judgement).right.get) === constraintList)
   }
   
   test("Post-order depth-first traversal of type derivation for constant: 42") {
@@ -104,7 +103,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter {
 
     val judgement = Judgement(context, Const(42), TypeVariable())
 
-    assert(DepthFirstPostOrderTraversal.flatten(typeDerivation(rules, judgement).right.get) === constraintList)
+    assert(DepthFirstPostOrderTraversal.flatten(typeDerivation(judgement).right.get) === constraintList)
   }
 
   test("Breadth-first traversal of type derivation for constant: 42") {
@@ -113,7 +112,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter {
 
     val judgement = Judgement(context, Const(42), TypeVariable())
 
-    assert(BreadthFirstTraversal.flatten(typeDerivation(rules, judgement).right.get) === constraintList)
+    assert(BreadthFirstTraversal.flatten(typeDerivation(judgement).right.get) === constraintList)
   }
 
   test("Bottom-up traversal of type derivation for constant: 42") {
@@ -122,7 +121,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter {
 
     val judgement = Judgement(context, Const(42), TypeVariable())
 
-    assert(BottomUpTraversal.flatten(typeDerivation(rules, judgement).right.get) === constraintList)
+    assert(BottomUpTraversal.flatten(typeDerivation(judgement).right.get) === constraintList)
   }
 
   test("Top-down traversal of type derivation for constant: 42") {
@@ -131,7 +130,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter {
 
     val judgement = Judgement(context, Const(42), TypeVariable())
 
-    assert(TopDownTraversal.flatten(typeDerivation(rules, judgement).right.get) === constraintList)
+    assert(TopDownTraversal.flatten(typeDerivation(judgement).right.get) === constraintList)
   }
 
 
@@ -145,7 +144,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter {
 
     val judgement = Judgement(context, App(App(Var("+"), Const(3)), Const(5)), TypeVariable())
 
-    assert(DepthFirstPreOrderTraversal.flatten(typeDerivation(rules, judgement).right.get) === constraintList)
+    assert(DepthFirstPreOrderTraversal.flatten(typeDerivation(judgement).right.get) === constraintList)
   }
 
   test("Post-order depth-first traversal of type derivation for application: 3 + 5") {
@@ -158,7 +157,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter {
 
     val judgement = Judgement(context, App(App(Var("+"), Const(3)), Const(5)), TypeVariable())
 
-    assert(DepthFirstPostOrderTraversal.flatten(typeDerivation(rules, judgement).right.get) === constraintList)
+    assert(DepthFirstPostOrderTraversal.flatten(typeDerivation(judgement).right.get) === constraintList)
   }
 
   test("Breadth-first traversal of type derivation for application: 3 + 5") {
@@ -171,7 +170,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter {
 
     val judgement = Judgement(context, App(App(Var("+"), Const(3)), Const(5)), TypeVariable())
 
-    assert(BreadthFirstTraversal.flatten(typeDerivation(rules, judgement).right.get) === constraintList)
+    assert(BreadthFirstTraversal.flatten(typeDerivation(judgement).right.get) === constraintList)
   }
 
   test("Bottom-up traversal of type derivation for application: 3 + 5") {
@@ -184,7 +183,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter {
 
     val judgement = Judgement(context, App(App(Var("+"), Const(3)), Const(5)), TypeVariable())
 
-    assert(BottomUpTraversal.flatten(typeDerivation(rules, judgement).right.get) === constraintList)
+    assert(BottomUpTraversal.flatten(typeDerivation(judgement).right.get) === constraintList)
   }
 
   test("Top-down traversal of type derivation for application: 3 + 5") {
@@ -197,7 +196,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter {
 
     val judgement = Judgement(context, App(App(Var("+"), Const(3)), Const(5)), TypeVariable())
 
-    assert(TopDownTraversal.flatten(typeDerivation(rules, judgement).right.get) === constraintList)
+    assert(TopDownTraversal.flatten(typeDerivation(judgement).right.get) === constraintList)
   }
 
 
@@ -212,7 +211,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter {
 
     val judgement = Judgement(context, Abs(Var("x"), App(App(Var(">"), Var("x")), Const(1))), TypeVariable())
 
-    assert(DepthFirstPreOrderTraversal.flatten(typeDerivation(rules, judgement).right.get) === constraintList)
+    assert(DepthFirstPreOrderTraversal.flatten(typeDerivation(judgement).right.get) === constraintList)
   }
 
   test("Post-order depth-first traversal of type derivation for lambda-abstraction: \\ x. x > 1") {
@@ -226,7 +225,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter {
 
     val judgement = Judgement(context, Abs(Var("x"), App(App(Var(">"), Var("x")), Const(1))), TypeVariable())
 
-    assert(DepthFirstPostOrderTraversal.flatten(typeDerivation(rules, judgement).right.get) === constraintList)
+    assert(DepthFirstPostOrderTraversal.flatten(typeDerivation(judgement).right.get) === constraintList)
   }
 
   test("Breadth-first traversal of type derivation for lambda-abstraction: \\ x. x > 1") {
@@ -240,7 +239,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter {
 
     val judgement = Judgement(context, Abs(Var("x"), App(App(Var(">"), Var("x")), Const(1))), TypeVariable())
 
-    assert(BreadthFirstTraversal.flatten(typeDerivation(rules, judgement).right.get) === constraintList)
+    assert(BreadthFirstTraversal.flatten(typeDerivation(judgement).right.get) === constraintList)
   }
 
   test("Bottom-up traversal of type derivation for lambda-abstraction: \\ x. x > 1") {
@@ -254,7 +253,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter {
 
     val judgement = Judgement(context, Abs(Var("x"), App(App(Var(">"), Var("x")), Const(1))), TypeVariable())
 
-    assert(BottomUpTraversal.flatten(typeDerivation(rules, judgement).right.get) === constraintList)
+    assert(BottomUpTraversal.flatten(typeDerivation(judgement).right.get) === constraintList)
   }
 
   test("Top-down traversal of type derivation for lambda-abstraction: \\ x. x > 1") {
@@ -268,7 +267,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter {
 
     val judgement = Judgement(context, Abs(Var("x"), App(App(Var(">"), Var("x")), Const(1))), TypeVariable())
 
-    assert(TopDownTraversal.flatten(typeDerivation(rules, judgement).right.get) === constraintList)
+    assert(TopDownTraversal.flatten(typeDerivation(judgement).right.get) === constraintList)
   }
   
 }
