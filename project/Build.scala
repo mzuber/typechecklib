@@ -23,13 +23,7 @@ object TypeCheckLibBuild extends Build {
     "root",
     file("."),
     settings = buildSettings
-  ) aggregate(macros, core, examples)
-
-  lazy val macros: Project = Project(
-    "macros",
-    file("macros"),
-    settings = buildSettings :+ (libraryDependencies <+= reflect)
-  )
+  ) aggregate(core, examples)
 
   lazy val core: Project = Project(
     "core",
@@ -42,7 +36,7 @@ object TypeCheckLibBuild extends Build {
       libraryDependencies += scalatest,
       libraryDependencies += kiama
     )
-  ) dependsOn(macros)
+  )
 
   lazy val examples: Project = Project(
     "examples",
