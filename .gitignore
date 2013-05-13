@@ -4,4 +4,3 @@
 # sbt specific
 dist/
 target/
-project/

@@ -114,6 +114,33 @@ object Rules {
 
 
   /**
+    * A class for axioms, i.e., rules with no premises.
+    */
+  abstract class Axiom extends Rule {
+
+    premises = Nil
+
+    /**
+      * Syntactic sugar for defining axioms.
+      *
+      * This class allows the user to define an axiom as following, where
+      * ''c'' is the rule's conclusion, and ''c,,i,,'' the constraints which
+      * must be valid for the rule to hold:
+      * {{{
+      * c | List(c_1, ... , c_n)
+      * }}}
+      */
+    protected implicit class AxiomBuilder(c: Judgement) {
+      
+      def |(cs: Constraint*) {
+	conclusion = c
+	constraints = cs.toList
+      }
+    }
+  }
+
+
+  /**
     * A class for type judgements.
     */
   case class Judgement(ctx: Context, expr: Any, ty: Type) {

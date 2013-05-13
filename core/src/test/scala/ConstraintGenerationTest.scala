@@ -37,7 +37,6 @@ import org.scalatest.BeforeAndAfter
 import typechecklib._
 import typechecklib.Types._
 import typechecklib.Rules._
-import typechecklib.ConstraintGeneration._
 
 import ExampleRules._
 
@@ -45,7 +44,7 @@ import ExampleRules._
 /**
   * Test suite for the constraint generation module.
   */
-class ConstraintGenerationTest extends FunSuite with BeforeAndAfter {  
+class ConstraintGenerationTest extends FunSuite with BeforeAndAfter with ReflectionBasedConstraintGeneration {
 
   /*
    * Reset the name supply before running each test case.
@@ -90,7 +89,7 @@ class ConstraintGenerationTest extends FunSuite with BeforeAndAfter {
 
     val judgement = Judgement(context, App(App(Var("+"), Const(3)), Const(5)), TypeVariable())
 
-    assert(typeDerivation(rules, judgement).right.get === derivationTree)
+    assert(typeDerivation(judgement).right.get === derivationTree)
   }
 
 
@@ -99,7 +98,7 @@ class ConstraintGenerationTest extends FunSuite with BeforeAndAfter {
 
     val judgement = Judgement(context, Const(42), TypeVariable())
 
-    assert(typeDerivation(rules, judgement).right.get === derivationTree)
+    assert(typeDerivation(judgement).right.get === derivationTree)
   }
 
                                                                      
@@ -115,7 +114,7 @@ class ConstraintGenerationTest extends FunSuite with BeforeAndAfter {
 
     val judgement = Judgement(context, Abs(Var("x"), App(App(Var(">"), Var("x")), Const(1))), TypeVariable())
     
-    assert(typeDerivation(rules, judgement).right.get === derivationTree)
+    assert(typeDerivation(judgement).right.get === derivationTree)
   }
 
 }

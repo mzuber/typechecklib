@@ -32,9 +32,9 @@
 package typechecklib
 
 import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.Queue
 
 import typechecklib.Constraints.Constraint
-import typechecklib.ConstraintGeneration.ConstraintTree
 
 import org.kiama.rewriting.Rewriter._
 
@@ -72,8 +72,8 @@ trait DepthFirstPostOrder extends TreeTraversal {
 
   def flatten(tree: ConstraintTree): List[Constraint] = {
     val constraints = new ListBuffer[Constraint]()
+    tree.children.reverse.map(t => constraints ++= flatten(t))
     constraints ++= tree.rule.constraints
-    tree.children.map(t => constraints ++= flatten(t))
     constraints.toList
   }
 }
@@ -84,13 +84,22 @@ trait DepthFirstPostOrder extends TreeTraversal {
   */
 trait BreadthFirst extends TreeTraversal {
 
-  def flatten(tree: ConstraintTree): List[Constraint] = {
-    val constraints = new ListBuffer[Constraint]()
-    breadthfirst(query {
-      case t: ConstraintTree => constraints ++= t.rule.constraints
-    })(tree)
-    constraints.toList
-  }
+  /*
+   * Note: The Kiama 'breadthfirst' strategy does not perform a real
+   * breadth-first traversal, thus we need to use an own implementation.
+   */
+  def flatten(tree: ConstraintTree): List[Constraint] =  { 
+    val queue = new Queue[ConstraintTree] 
+    val constraints = new ListBuffer[Constraint]() 
+    queue += tree
+
+    while (! queue.isEmpty) { 
+      val t = queue.dequeue 
+      constraints ++= t.rule.constraints 
+      queue ++= t.children 
+    } 
+    constraints.toList 
+  } 
 }
 
 

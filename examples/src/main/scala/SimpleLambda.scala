@@ -29,23 +29,25 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package examples
+
 import typechecklib._
 import typechecklib.Syntax.Ide
 import typechecklib.Rules._
 import typechecklib.Types._
 import typechecklib.Constraints._
 
+
 /**
-  * Type rules for testing purposes.
+  * An example type checker for a simply typed lambda calculus.
   */
-object ExampleRules {
+object SimpleLambda {
 
   /* Abstract Syntax */
   abstract class Term
   case class Var(ide: Ide) extends Term
   case class Abs(x: Var, e: Term) extends Term
   case class App(f: Term, e:Term) extends Term
-  case class Const(n: Int) extends Term
 
 
   /*
@@ -55,9 +57,9 @@ object ExampleRules {
    *       ----------- (Var)
    *        Γ ⊢ x : T
    */
-  case class VarRule(ctx: Context, x: Var, t: Type) extends Rule {
+  case class VarRule(ctx: Context, x: Var, t: Type) extends Axiom {
 
-    Nil ==> ctx ⊢ x <:> t | t =:= ctx(x)
+    ctx ⊢ x <:> t | t =:= ctx(x)
 
     override val name = "Var"
   }
@@ -84,7 +86,6 @@ object ExampleRules {
 
   /*
    * Typing rule for application.
-   * 
    *    Γ ⊢ f : T1     Γ ⊢ e : T2     T1 = T2 -> T
    *   -------------------------------------------- (App)
    *                  Γ ⊢ (f) e : T
@@ -101,17 +102,11 @@ object ExampleRules {
 
 
   /*
-   * Typing rule for integer values:
-   *
-   *     T = int
-   *   ----------- (Int)
-   *    Γ ⊢ n : T
+   * The type checker.
    */
-  case class ConstRule(ctx: Context, n: Const, t: Type) extends Rule {
+  object LambdaTypeChecker extends TypeChecker with ReflectionBasedConstraintGeneration with DepthFirstPreOrder with LinearConstraintSolver {
+    import scala.reflect.runtime.universe.typeOf
 
-    Nil ==> ctx ⊢ n <:> t | t =:= BaseType("int")
-    
-    override val name = "const"
+    val rules = List(typeOf[VarRule], typeOf[AbsRule], typeOf[AppRule])
   }
-
 }

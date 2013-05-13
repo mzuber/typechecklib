@@ -36,65 +36,36 @@ import typechecklib.Errors._
 
 
 /**
-  * The constraint generation module.
+  * The constraint generation trait.
   */
-object ConstraintGeneration {
-
-  /**
-    * A class representing type deductions.
-    *
-    * A type deduction is a tree of rule instances.
-    */
-  case class ConstraintTree(rule: Rule, children: List[ConstraintTree])
-
+trait ConstraintGeneration {
 
   /**
     * Build the derivation tree for a given judgement based on the given type rules.
     */
-  def typeDerivation(rules: List[reflect.runtime.universe.Type], judgement: Judgement): Either[Error, ConstraintTree] = {
+  def typeDerivation(judgement: Judgement): Either[Error, ConstraintTree] = {
 
-    var ruleInstance: Option[Rule] = None
-
-    rules.find(rule => { ruleInstance = instantiateRule(rule, judgement.ctx, judgement.expr, judgement.ty) ; ruleInstance.isDefined }) match {
-      case None => Left(NoMatchingRuleError(judgement))
-      case _    => {
+    instantiateRule(judgement) match {
+      case None       => Left(NoMatchingRuleError(judgement))
+      case Some(rule) => {
 	/* Generate constraints for remaining premises and build constraint tree. */
-	val premises: List[Judgement] = ruleInstance.get.premises
-
-	for (children <- errorMap(premises, (j: Judgement) => typeDerivation(rules, j)).right)
-	yield ConstraintTree(ruleInstance.get, children)
+	for (children <- errorMap(rule.premises, (j: Judgement) => typeDerivation(j)).right)
+	yield ConstraintTree(rule, children)
       }
     }
   }
 
 
   /**
-    * Creates an instance of the given [[typechecklib.Rules.Rule Rule]] type at runtime.
-    *
-    * @return None, if instantiating the rule fails. Otherwise the instantiated rule
-    *         wrapped up in a Some.
+    * Instantiate the corresponding type rule for the given judgement.
     */
-  def instantiateRule(t: reflect.runtime.universe.Type, args: Any*): Option[Rule] = {
-    import scala.reflect.runtime.{ currentMirror => m, universe => uni }
-    import uni.{Type => ReflectionType, _}
-    import java.lang.Throwable
-
-    val ttag = t
-    val ctor = ttag.member(nme.CONSTRUCTOR).asTerm
-    if (ctor.isOverloaded) throw new Exception("don't know how to disambiguate")
-
-    val c = ttag.typeSymbol.asClass
-    val mm = m.reflectClass(c).reflectConstructor(ctor.asMethod)
-    //	  val f = mm.symbol.asMethod.paramss
-    //	  println(f)
-    try {
-      val v = mm.apply(args: _*) match {
-        case x: Rule => Some(x)
-        case _ => None
-      }
-      return v
-    } catch {
-      case e: Throwable => None
-    } 
-  }
+  def instantiateRule(judgement: Judgement): Option[Rule]
 }
+
+
+/**
+  * A class representing type deductions.
+  *
+  * A type deduction is a tree of rule instances.
+  */
+case class ConstraintTree(rule: Rule, children: List[ConstraintTree])

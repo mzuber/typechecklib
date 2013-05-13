@@ -36,7 +36,6 @@ import scala.util.Either.cond
 import typechecklib.Types._
 import typechecklib.Rules._
 import typechecklib.Errors._
-import typechecklib.ConstraintGeneration._
 import typechecklib.Substitutions.Substitution
 import typechecklib.Unification.unify
 
@@ -46,13 +45,7 @@ import typechecklib.Unification.unify
   */
 trait TypeChecker {
 
-  this: TreeTraversal with ConstraintSolver =>
-
-  /**
-    * Type rules.
-    */
-  val rules: List[reflect.runtime.universe.Type]
-
+  this: ConstraintGeneration with TreeTraversal with ConstraintSolver =>
 
   /**
     * Compute the type of an expression.
@@ -82,7 +75,7 @@ trait TypeChecker {
     * Start the library's type-check engine for the given judgement.
     */
   private def computeType(judgement: Judgement): Either[Error, Substitution] = {
-    for ( constraintTree <- typeDerivation(rules, judgement).right ;
+    for ( constraintTree <- typeDerivation(judgement).right ;
 	  σ <- solveConstraints(flatten(constraintTree)).right )
     yield σ
   }
