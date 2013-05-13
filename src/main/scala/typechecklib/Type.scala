@@ -125,6 +125,9 @@ object Types {
     * A class for type variables.
     */
   case class TypeVariable(ide: Ide) extends Type
+     {
+       override def toString(): String = ide.toString
+     }
 
   /**
     * A type variable with a fresh name.
@@ -144,24 +147,36 @@ object Types {
     * A class for base types.
     */
   case class BaseType(ide: Ide) extends Type
+     {
+       override def toString(): String = ide.toString
+     }
 
 
   /**
     * A class for function types.
     */
   case class FunctionType(dom: Type, ran: Type) extends Type
+     {
+       override def toString(): String = dom.toString+"⇒"+ran.toString
+     }
 
 
   /**
     * A class for tuple types.
     */
   case class TupleType(types: List[Type]) extends Type
+     {
+       override def toString(): String = types.mkString("(",",",")")
+     }
 
 
   /**
     * A class for type constructors.
     */
   case class TypeConstructor(ide: Ide, types: List[Type]) extends Type
+     {
+       override def toString(): String = types.mkString(ide+"(",",",")")
+     }
 
   
   /**
