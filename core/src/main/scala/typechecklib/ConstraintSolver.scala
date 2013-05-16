@@ -36,51 +36,61 @@ import typechecklib.Substitutions._
 import typechecklib.Errors._
 import typechecklib.Constraints.Constraint
 
-
 /**
-  * The trait for constraint solvers.
-  */
+ * The trait for constraint solvers.
+ */
 trait ConstraintSolver {
 
   /**
-    * Solve the given constraints.
-    *
-    * @return If all constraints can be solved, a substitution encapsulating the results
-    *         of the solved constraints
-    */
+   * Solve the given constraints.
+   *
+   * @return If all constraints can be solved, a substitution encapsulating the results
+   *         of the solved constraints
+   */
   def solveConstraints(constraints: List[Constraint]): Either[Error, Substitution]
 }
 
+trait ScanConstraintSolver extends ConstraintSolver {
+
+  /**
+   * Solve the given constraints.
+   *
+   * @return Returns all intermediate results of the solving process
+   */
+  def scanSolveConstraints(constraints: List[Constraint]): List[IntermediateResult]
+}
+
+case class IntermediateResult(current: Constraint, result: Either[Error, Substitution], sub: Either[Error,Substitution], unsolved: List[Constraint])
+
 
 /**
-  * Linear cosntraint solver.
-  * 
-  * This solver tries to solve constraints in the given order.
-  */
+ * Linear cosntraint solver.
+ *
+ * This solver tries to solve constraints in the given order.
+ */
 trait LinearConstraintSolver extends ConstraintSolver {
 
   /**
-    *  Solve the generated constraints and return the possibly arisen
-    *  substitution.
-    */
+   *  Solve the generated constraints and return the possibly arisen
+   *  substitution.
+   */
   def solveConstraints(constraints: List[Constraint]): Either[Error, Substitution] = {
     var σ = new Substitution
     var unsolvedConstraints = constraints
 
-    while (! unsolvedConstraints.isEmpty) {
+    while (!unsolvedConstraints.isEmpty) {
       val constraint = unsolvedConstraints.head
 
-      if (! constraint.isSolveable) {
-	return Left(UnsolvableConstraintError(constraint))
-      }
-      else {
-	/* Evaluate all meta-level type functions in this constraint */
-	val evaluatedConstraint = evaluateMetaFun(constraint)
+      if (!constraint.isSolveable) {
+        return Left(UnsolvableConstraintError(constraint))
+      } else {
+        /* Evaluate all meta-level type functions in this constraint */
+        val evaluatedConstraint = evaluateMetaFun(constraint)
         evaluatedConstraint.solve match {
           case Some(φ) => {
-	    σ = φ ++ σ
-	    unsolvedConstraints = σ(unsolvedConstraints.tail)
-	  }
+            σ = φ ++ σ
+            unsolvedConstraints = σ(unsolvedConstraints.tail)
+          }
           case None => return Left(NoSolutionError(evaluatedConstraint))
         }
       }
@@ -88,4 +98,24 @@ trait LinearConstraintSolver extends ConstraintSolver {
 
     Right(σ)
   }
+}
+
+trait LinearScanConstraintSolver extends LinearConstraintSolver with ScanConstraintSolver
+{
+  def scanSolveConstraints(constraints: List[Constraint]): List[IntermediateResult] = 
+    constraints.foldLeft(List(IntermediateResult(constraints.head, Right(new Substitution), Right(new Substitution), constraints)))({
+      case (irs,c) =>
+        irs.head match 
+        {
+          case IntermediateResult(current, Right(result), Right(sub), unsolved) => 
+            {
+              val res = solveConstraints(List(unsolved.head))
+              IntermediateResult(unsolved.head, res, res.right.map(x=>x++sub ), unsolved.tail) :: irs
+            }
+            case _ => irs
+        }
+
+    }).reverse.tail
+  //rever list so its in orde it was solved in
+  //and remove dummy intermediate restult
 }
