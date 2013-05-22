@@ -50,6 +50,10 @@ object SimpleLambda {
   case class App(f: Term, e:Term) extends Term
 
 
+  /* Parent type for all type rules */
+  sealed trait SimpleLambdaRules
+
+
   /*
    * Typing rule for variable lookup:
    * 
@@ -57,7 +61,7 @@ object SimpleLambda {
    *       ----------- (Var)
    *        Γ ⊢ x : T
    */
-  case class VarRule(ctx: Context, x: Var, t: Type) extends Axiom {
+  case class VarRule(ctx: Context, x: Var, t: Type) extends Axiom with SimpleLambdaRules {
 
     ctx ⊢ x <:> t | t =:= ctx(x)
 
@@ -72,7 +76,7 @@ object SimpleLambda {
    *     ------------------------------------ (Abs)
    *                Γ ⊢ λ x.e : T
    */
-  case class AbsRule(ctx: Context, abs: Abs, t: Type) extends Rule {
+  case class AbsRule(ctx: Context, abs: Abs, t: Type) extends Rule with SimpleLambdaRules {
     val t1 = TypeVariable()
     val t2 = TypeVariable()
     val newCtx = ctx + (abs.x -> t1)
@@ -90,7 +94,7 @@ object SimpleLambda {
    *   -------------------------------------------- (App)
    *                  Γ ⊢ (f) e : T
    */
-  case class AppRule(ctx: Context, app: App, t: Type) extends Rule {
+  case class AppRule(ctx: Context, app: App, t: Type) extends Rule with SimpleLambdaRules {
     val t1 = TypeVariable()
     val t2 = TypeVariable()
 
