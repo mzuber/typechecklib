@@ -36,44 +36,66 @@ import typechecklib.Substitutions._
 import typechecklib.Errors._
 import typechecklib.Constraints.Constraint
 
+
 /**
- * The trait for constraint solvers.
- */
+  * The trait for constraint solvers.
+  */
 trait ConstraintSolver {
 
   /**
-   * Solve the given constraints.
-   *
-   * @return If all constraints can be solved, a substitution encapsulating the results
-   *         of the solved constraints
-   */
+    * Solve the given constraints.
+    *
+    * @return If all constraints can be solved, a substitution encapsulating the results
+    *         of the solved constraints
+    */
   def solveConstraints(constraints: List[Constraint]): Either[Error, Substitution]
 }
 
-trait ScanConstraintSolver extends ConstraintSolver {
+
+/**
+  * The trait for traceable constraint solvers.
+  */
+trait TraceableConstraintSolver extends ConstraintSolver {
 
   /**
-   * Solve the given constraints.
-   *
-   * @return Returns all intermediate results of the solving process
-   */
-  def scanSolveConstraints(constraints: List[Constraint]): List[IntermediateResult]
-}
+    * Solve the given constraints step by step.
+    *
+    * @return Every intermediate result of the constraint solving process
+    */
+  def traceSolver(constraints: List[Constraint]): List[IntermediateResult]
 
-case class IntermediateResult(current: Constraint, result: Either[Error, Substitution], sub: Either[Error,Substitution], unsolved: List[Constraint])
+  /**
+    * Solve the given constraints.
+    *
+    * @return If all constraints can be solved, a substitution encapsulating the results
+    *         of the solved constraints
+    */
+  override def solveConstraints(constraints: List[Constraint]): Either[Error, Substitution] = traceSolver(constraints) match {
+    case Nil     => Right(new Substitution)
+    case results => results.last match {
+      case IntermediateResult(_, Left(error), _, _) => Left(error)
+      case IntermediateResult(_, Right(_), σ, _)    => Right(σ)
+    }
+  }
+}
 
 
 /**
- * Linear cosntraint solver.
- *
- * This solver tries to solve constraints in the given order.
- */
+  * A class to store all intermediate information arising during constraint solving.
+  */
+case class IntermediateResult(constraint: Constraint, result: Either[Error, Substitution], substitution: Substitution, remainingConstraints: List[Constraint])
+
+
+/**
+  * Linear constraint solver.
+  *
+  * This solver tries to solve all constraints in the given order.
+  */
 trait LinearConstraintSolver extends ConstraintSolver {
 
   /**
-   *  Solve the generated constraints and return the possibly arisen
-   *  substitution.
-   */
+    *  Solve the generated constraints and return the possibly arisen substitution.
+    */
   def solveConstraints(constraints: List[Constraint]): Either[Error, Substitution] = {
     var σ = new Substitution
     var unsolvedConstraints = constraints
@@ -100,22 +122,47 @@ trait LinearConstraintSolver extends ConstraintSolver {
   }
 }
 
-trait LinearScanConstraintSolver extends LinearConstraintSolver with ScanConstraintSolver
-{
-  def scanSolveConstraints(constraints: List[Constraint]): List[IntermediateResult] = 
-    constraints.foldLeft(List(IntermediateResult(constraints.head, Right(new Substitution), Right(new Substitution), constraints)))({
-      case (irs,c) =>
-        irs.head match 
-        {
-          case IntermediateResult(current, Right(result), Right(sub), unsolved) => 
-            {
-              val res = solveConstraints(List(unsolved.head))
-              IntermediateResult(unsolved.head, res, res.right.map(x=>x++sub ), unsolved.tail) :: irs
-            }
-            case _ => irs
-        }
 
-    }).reverse.tail
-  //rever list so its in orde it was solved in
-  //and remove dummy intermediate restult
+/**
+  * Traceable linear constraint solver.
+  *
+  * This solver tries to solve all constraints in the given order.
+  */
+trait TraceableLinearConstraintSolver extends LinearConstraintSolver with TraceableConstraintSolver {
+
+  /**
+    * Solve the given constraints step by step.
+    *
+    * @return Every intermediate result of the constraint solving process
+    */
+  def traceSolver(constraints: List[Constraint]): List[IntermediateResult] = {
+    var σ = new Substitution
+    var unsolvedConstraints = constraints
+    var intermediateResults: List[IntermediateResult] = Nil
+
+    while (!unsolvedConstraints.isEmpty) {
+      val constraint = unsolvedConstraints.head
+
+      if (!constraint.isSolveable) {
+	val errorResult = IntermediateResult(constraint, Left(UnsolvableConstraintError(constraint)), σ, unsolvedConstraints.tail)
+        return intermediateResults :+ errorResult
+      } else {
+        /* Evaluate all meta-level type functions in this constraint */
+        val evaluatedConstraint = evaluateMetaFun(constraint)
+        evaluatedConstraint.solve match {
+          case Some(φ) => {
+            σ = φ ++ σ
+            unsolvedConstraints = σ(unsolvedConstraints.tail)
+	    intermediateResults = intermediateResults :+ IntermediateResult(evaluatedConstraint, Right(φ), σ, unsolvedConstraints)
+          }
+          case None => {
+	    val errorResult = IntermediateResult(evaluatedConstraint, Left(NoSolutionError(evaluatedConstraint)), σ, unsolvedConstraints.tail)
+	    return intermediateResults :+ errorResult
+	  }
+        }
+      }
+    }
+
+    intermediateResults
+  }
 }
