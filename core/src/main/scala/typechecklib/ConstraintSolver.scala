@@ -83,7 +83,7 @@ trait TraceableConstraintSolver extends ConstraintSolver {
 /**
   * A class to store all intermediate information arising during constraint solving.
   */
-case class IntermediateResult(constraint: Constraint, result: Either[Error, Substitution], substitution: Substitution, remainingConstraints: List[Constraint])
+case class IntermediateResult(val constraint: Constraint, val result: Either[Error, Substitution], val substitution: Substitution, remainingConstraints: List[Constraint])
 
 
 /**
