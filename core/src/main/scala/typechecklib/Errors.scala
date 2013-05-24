@@ -32,7 +32,7 @@
 package typechecklib
 
 import typechecklib.Rules.Judgement
-import typechecklib.Constraints.Constraint
+import typechecklib.Constraints.{Constraint, quote}
 import typechecklib.Types.Type
 
 
@@ -51,7 +51,9 @@ object Errors {
   /**
     * No matching rule has been found for an expression when building the type derivation tree.
     */
-  case class NoMatchingRuleError(judgement: Judgement) extends ConstraintGenerationError
+  case class NoMatchingRuleError(judgement: Judgement) extends ConstraintGenerationError {
+    override def toString = "No matching type rule for expression " + quote(judgement.expr)
+  }
 
   /**
     * A class for errors occuring during the constraint solving phase.
@@ -61,17 +63,23 @@ object Errors {
   /**
     * A constraint is not yet in a state where it can be solved.
     */
-  case class UnsolvableConstraintError(constraint: Constraint) extends ConstraintSolvingError
+  case class UnsolvableConstraintError(constraint: Constraint) extends ConstraintSolvingError {
+    override def toString = "A constraint is not solvable yet: " + constraint
+  }
 
   /**
     * Finding a solution for a constraint fails.
     */
-  case class NoSolutionError(constraint: Constraint) extends ConstraintSolvingError
+  case class NoSolutionError(constraint: Constraint) extends ConstraintSolvingError {
+    override def toString = constraint.errorMsg.message
+}
 
   /**
     * An error during type checking, i.e. the expected type does not match the inferred one.
     */
-  case class TypeCheckError(expectedType: Type, inferredType: Type) extends Error
+  case class TypeCheckError(expectedType: Type, inferredType: Type) extends Error {
+    override def toString = "Type missmatch: Couldn't match expected type " + quote(expectedType) + " against inferred type " + quote(inferredType)
+  }
 
 
   /**

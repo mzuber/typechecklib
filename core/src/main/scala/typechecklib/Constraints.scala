@@ -65,6 +65,18 @@ object Constraints {
 
   implicit def string2Message(msg: String) = SimpleMessage(msg)
 
+  /**
+    * Basic error message for type missmatch.
+    */
+  case class TypeMissmatch(expectedType: Type, inferredType: Type) extends ErrorMessage {
+    def message = "Type missmatch: Couldn't match expected type " + quote(expectedType) + " against inferred type " + quote(inferredType)
+  }
+
+  /**
+    * Put the given term in `quotes'.
+    */
+  def quote[T](term: T): String = "`" + term + "'"
+
 
   /**
     * A trait for constraints.
@@ -86,7 +98,7 @@ object Constraints {
       * An [[typechecklib.Constraints.ErrorMessage ErrorMessage]] which
       * can be displayed in case the constraint cannot be solve.
       */
-    var errorMsg: ErrorMessage = "Error"
+    var errorMsg: ErrorMessage = "Error: Could not solve " + this.toString
 
     /**
       * Attach an error message to a constraint.
