@@ -56,6 +56,11 @@ case class Context(ctx: Map[Any, Type]) {
   def apply(exp: Any): Type = ctx.getOrElse(exp, Bottom)
 
   /**
+    * Tests whether this context contains a binding for an expression.
+    */
+  def contains(exp: Any) = ctx contains exp
+
+  /**
     * Insert a new mapping into this context.
     */
   def +(mapping: (Any, Type)): Context = Context(ctx + mapping)
