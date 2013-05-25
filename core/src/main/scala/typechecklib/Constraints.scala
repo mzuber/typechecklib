@@ -103,7 +103,7 @@ object Constraints {
     /**
       * Attach an error message to a constraint.
       */
-    def |(msg: ErrorMessage): Constraint = {
+    def |(msg: ErrorMessage): this.type = {
       errorMsg = msg
       this
     }
@@ -153,6 +153,9 @@ object Constraints {
     */ 
   case class Not(c: Constraint) extends Constraint {
 
+    /**
+      * Solve the non-negated cosntraint and flip the result.
+      */
     def solve() = c.solve match {
       case None => Some(new Substitution)
       case _    => None
@@ -173,6 +176,9 @@ object Constraints {
     */ 
   case class And(a: Constraint, b: Constraint) extends Constraint {
 
+    /**
+      * Solve both constraints and combine the results accordingly.
+      */
     def solve(): Option[Substitution] = {
       var s1 = a.solve
       if (s1.isDefined)
@@ -182,16 +188,15 @@ object Constraints {
     }
 
     private def solve(x: Constraint, y: Constraint): Option[Substitution] = {
-        var s1 = x.solve
-        if (s1.isDefined) {
-          val f = s1.get
-          val s2 = (f(y)).solve
-          if (s2.isDefined)
-            return Some(s1.get ++ s2.get)
-          else None
-        } else None
-      }
-
+      var s1 = x.solve
+      if (s1.isDefined) {
+        val f = s1.get
+        val s2 = (f(y)).solve
+        if (s2.isDefined)
+          return Some(s1.get ++ s2.get)
+        else None
+      } else None
+    }
   }
 
 
@@ -200,6 +205,9 @@ object Constraints {
     */ 
   case class Or(a: Constraint, b: Constraint) extends Constraint {
 
+    /**
+      * Solve both constraints and combine the results accordingly.
+      */
     def solve(): Option[Substitution] = {
       val s1 = a.solve
       if (s1.isDefined) {
