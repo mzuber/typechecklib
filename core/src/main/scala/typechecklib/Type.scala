@@ -67,22 +67,7 @@ object Types {
       * All type variables occuring free in this type with
       * respect to a given list of bound type variables.
       */
-    def freeVars(boundVars: List[TypeVariable]): List[TypeVariable] = this match {
-      case tv: TypeVariable => if (boundVars contains tv) Nil
-			       else List(tv)
-
-      case FunctionType(s, t) => s.freeVars(boundVars) union t.freeVars(boundVars)
-
-      case TupleType(types) => types.flatMap(_.freeVars(boundVars)).distinct
-
-      case TypeConstructor(_, types) => types.flatMap(_.freeVars(boundVars)).distinct
-
-      case TypeScheme(tvs, ty) => ty.freeVars(tvs)
-
-      case _: BaseType => Nil
-
-      case _ => Nil
-    }
+    def freeVars(boundVars: List[TypeVariable]): List[TypeVariable]
 
     /**
       * All type variables occuring not free, i.e., bound
@@ -118,16 +103,21 @@ object Types {
   /**
     * An object for bottom types.
     */
-  case object Bottom extends Type
+  case object Bottom extends Type {
+    def freeVars(boundVars: List[TypeVariable]) = Nil
+  }
 
 
   /**
     * A class for type variables.
     */
-  case class TypeVariable(ide: Ide) extends Type
-     {
-       override def toString(): String = ide.toString
-     }
+  case class TypeVariable(ide: Ide) extends Type {
+
+    def freeVars(boundVars: List[TypeVariable]) = if (boundVars contains this) Nil
+						  else List(this)
+
+    override def toString(): String = ide.toString
+  }
 
   /**
     * A type variable with a fresh name.
@@ -146,43 +136,56 @@ object Types {
   /**
     * A class for base types.
     */
-  case class BaseType(ide: Ide) extends Type
-     {
-       override def toString(): String = ide.toString
-     }
+  case class BaseType(ide: Ide) extends Type {
+    
+    def freeVars(boundVars: List[TypeVariable]) = Nil
+
+    override def toString(): String = ide.toString
+  }
 
 
   /**
     * A class for function types.
     */
-  case class FunctionType(dom: Type, ran: Type) extends Type
-     {
-       override def toString(): String = dom.toString+"⇒"+ran.toString
-     }
+  case class FunctionType(dom: Type, ran: Type) extends Type {
+
+    def freeVars(boundVars: List[TypeVariable]) = dom.freeVars(boundVars) union ran.freeVars(boundVars)
+
+    override def toString(): String = dom.toString+"⇒"+ran.toString
+  }
 
 
   /**
     * A class for tuple types.
     */
-  case class TupleType(types: List[Type]) extends Type
-     {
-       override def toString(): String = types.mkString("(",",",")")
-     }
+  case class TupleType(types: List[Type]) extends Type {
+
+    def freeVars(boundVars: List[TypeVariable]) = types.flatMap(_.freeVars(boundVars)).distinct
+
+    override def toString(): String = types.mkString("(", ", ", ")")
+  }
 
 
   /**
     * A class for type constructors.
     */
-  case class TypeConstructor(ide: Ide, types: List[Type]) extends Type
-     {
-       override def toString(): String = types.mkString(ide+"(",",",")")
-     }
+  case class TypeConstructor(ide: Ide, types: List[Type]) extends Type {
+
+    def freeVars(boundVars: List[TypeVariable]) = types.flatMap(_.freeVars(boundVars)).distinct
+
+    override def toString(): String = ide + types.mkString("(", ", ", ")")
+  }
 
   
   /**
     * A class for type schemes.
     */
-  case class TypeScheme(tvars: List[TypeVariable], ty: Type) extends Type
+  case class TypeScheme(tvars: List[TypeVariable], ty: Type) extends Type {
+
+    def freeVars(boundVars: List[TypeVariable]) = ty.freeVars(tvars)
+
+    override def toString = tvars.mkString("forall ", ", ", " . ") + ty
+  }
 
 
   /**
@@ -195,6 +198,9 @@ object Types {
     * A class for unary auxiliary functions in deduction rules which evaluate to a type.
     */
   case class TypeFunction1[T](f: MetaFun1[T, Type]) extends Type {
+
+    def freeVars(boundVars: List[TypeVariable]) = Nil
+
     def apply() = f.apply
   }
 
@@ -203,6 +209,9 @@ object Types {
     * A class for binary auxiliary functions in deduction rules which evaluate to a type.
     */
   case class TypeFunction2[S, T](f: MetaFun2[S, T, Type]) extends Type {
+
+    def freeVars(boundVars: List[TypeVariable]) = Nil
+
     def apply() = f.apply
   }
 
@@ -211,6 +220,9 @@ object Types {
     * A class for auxiliary functions in deduction rules which evaluate to a type.
     */
   case class TypeFunction[T <: Product](f: MetaFun[T, Type]) extends Type {
+
+    def freeVars(boundVars: List[TypeVariable]) = Nil
+
     def apply() = f.apply
   }
 }
