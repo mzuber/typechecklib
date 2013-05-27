@@ -151,7 +151,7 @@ object Types {
 
     def freeVars(boundVars: List[TypeVariable]) = dom.freeVars(boundVars) union ran.freeVars(boundVars)
 
-    override def toString(): String = dom.toString+"⇒"+ran.toString
+    override def toString(): String = dom.toString + " ⇒ " + ran.toString
   }
 
 
