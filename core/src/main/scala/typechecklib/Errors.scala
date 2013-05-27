@@ -32,7 +32,7 @@
 package typechecklib
 
 import typechecklib.Rules.Judgement
-import typechecklib.Constraints.{Constraint, quote}
+import typechecklib.Constraints.{AnnotatedConstraint, Constraint, quote}
 import typechecklib.Types.Type
 
 
@@ -63,16 +63,16 @@ object Errors {
   /**
     * A constraint is not yet in a state where it can be solved.
     */
-  case class UnsolvableConstraintError(constraint: Constraint) extends ConstraintSolvingError {
-    override def toString = "A constraint is not solvable yet: " + constraint
+  case class UnsolvableConstraintError(annotatedConstraint: AnnotatedConstraint) extends ConstraintSolvingError {
+    override def toString = "A constraint is not solvable yet: " + annotatedConstraint.constraint
   }
 
   /**
     * Finding a solution for a constraint fails.
     */
-  case class NoSolutionError(constraint: Constraint) extends ConstraintSolvingError {
-    override def toString = constraint.errorMsg.message
-}
+  case class NoSolutionError(annotatedConstraint: AnnotatedConstraint) extends ConstraintSolvingError {
+    override def toString = annotatedConstraint.errorMsg.message
+  }
 
   /**
     * An error during type checking, i.e. the expected type does not match the inferred one.

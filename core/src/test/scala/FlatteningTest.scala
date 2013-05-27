@@ -90,7 +90,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter with ReflectionBasedCo
 
   test("Pre-order depth-first traversal of type derivation for constant: 42") {
 
-    val constraintList = List(TypeVariable("$0") =:= BaseType("int"))
+    val constraintList = List(TypeVariable("$0") =:= BaseType("int")) map annotateConstraintWithDefaultErrorMessage
 
     val judgement = Judgement(context, Const(42), TypeVariable())
 
@@ -99,7 +99,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter with ReflectionBasedCo
   
   test("Post-order depth-first traversal of type derivation for constant: 42") {
 
-    val constraintList = List(TypeVariable("$0") =:= BaseType("int"))
+    val constraintList = List(TypeVariable("$0") =:= BaseType("int")) map annotateConstraintWithDefaultErrorMessage
 
     val judgement = Judgement(context, Const(42), TypeVariable())
 
@@ -108,7 +108,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter with ReflectionBasedCo
 
   test("Breadth-first traversal of type derivation for constant: 42") {
 
-    val constraintList = List(TypeVariable("$0") =:= BaseType("int"))
+    val constraintList = List(TypeVariable("$0") =:= BaseType("int")) map annotateConstraintWithDefaultErrorMessage
 
     val judgement = Judgement(context, Const(42), TypeVariable())
 
@@ -117,7 +117,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter with ReflectionBasedCo
 
   test("Bottom-up traversal of type derivation for constant: 42") {
 
-    val constraintList = List(TypeVariable("$0") =:= BaseType("int"))
+    val constraintList = List(TypeVariable("$0") =:= BaseType("int")) map annotateConstraintWithDefaultErrorMessage
 
     val judgement = Judgement(context, Const(42), TypeVariable())
 
@@ -126,7 +126,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter with ReflectionBasedCo
 
   test("Top-down traversal of type derivation for constant: 42") {
 
-    val constraintList = List(TypeVariable("$0") =:= BaseType("int"))
+    val constraintList = List(TypeVariable("$0") =:= BaseType("int")) map annotateConstraintWithDefaultErrorMessage
 
     val judgement = Judgement(context, Const(42), TypeVariable())
 
@@ -140,7 +140,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter with ReflectionBasedCo
 			      TypeVariable("$4") =:= BaseType("int"),
 			      TypeVariable("$3") =:= TypeVariable("$4") --> TypeVariable("$1"),
 			      TypeVariable("$2") =:= BaseType("int"),
-			      TypeVariable("$1") =:= TypeVariable("$2") --> TypeVariable("$0"))
+			      TypeVariable("$1") =:= TypeVariable("$2") --> TypeVariable("$0")) map annotateConstraintWithDefaultErrorMessage
 
     val judgement = Judgement(context, App(App(Var("+"), Const(3)), Const(5)), TypeVariable())
 
@@ -153,7 +153,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter with ReflectionBasedCo
 			      TypeVariable("$4") =:= BaseType("int"),
 			      TypeVariable("$3") =:= context(Var("+")),
 			      TypeVariable("$3") =:= TypeVariable("$4") --> TypeVariable("$1"),
-			      TypeVariable("$1") =:= TypeVariable("$2") --> TypeVariable("$0"))
+			      TypeVariable("$1") =:= TypeVariable("$2") --> TypeVariable("$0")) map annotateConstraintWithDefaultErrorMessage
 
     val judgement = Judgement(context, App(App(Var("+"), Const(3)), Const(5)), TypeVariable())
 
@@ -166,7 +166,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter with ReflectionBasedCo
 			      TypeVariable("$3") =:= TypeVariable("$4") --> TypeVariable("$1"),
 			      TypeVariable("$2") =:= BaseType("int"),
 			      TypeVariable("$3") =:= context(Var("+")),
-			      TypeVariable("$4") =:= BaseType("int"))
+			      TypeVariable("$4") =:= BaseType("int")) map annotateConstraintWithDefaultErrorMessage
 
     val judgement = Judgement(context, App(App(Var("+"), Const(3)), Const(5)), TypeVariable())
 
@@ -179,7 +179,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter with ReflectionBasedCo
 			      TypeVariable("$4") =:= BaseType("int"),
 			      TypeVariable("$3") =:= TypeVariable("$4") --> TypeVariable("$1"),
 			      TypeVariable("$2") =:= BaseType("int"),
-			      TypeVariable("$1") =:= TypeVariable("$2") --> TypeVariable("$0"))
+			      TypeVariable("$1") =:= TypeVariable("$2") --> TypeVariable("$0")) map annotateConstraintWithDefaultErrorMessage
 
     val judgement = Judgement(context, App(App(Var("+"), Const(3)), Const(5)), TypeVariable())
 
@@ -192,7 +192,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter with ReflectionBasedCo
 			      TypeVariable("$3") =:= TypeVariable("$4") --> TypeVariable("$1"),
 			      TypeVariable("$3") =:= context(Var("+")),
 			      TypeVariable("$4") =:= BaseType("int"),
-			      TypeVariable("$2") =:= BaseType("int"))
+			      TypeVariable("$2") =:= BaseType("int")) map annotateConstraintWithDefaultErrorMessage
 
     val judgement = Judgement(context, App(App(Var("+"), Const(3)), Const(5)), TypeVariable())
 
@@ -207,7 +207,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter with ReflectionBasedCo
 			      TypeVariable("$5") =:= TypeVariable("$6") --> TypeVariable("$3"),
 			      TypeVariable("$4") =:= BaseType("int"),
 			      TypeVariable("$3") =:= TypeVariable("$4") --> TypeVariable("$2"),
-			      TypeVariable("$0") =:= TypeVariable("$1") --> TypeVariable("$2"))
+			      TypeVariable("$0") =:= TypeVariable("$1") --> TypeVariable("$2")) map annotateConstraintWithDefaultErrorMessage
 
     val judgement = Judgement(context, Abs(Var("x"), App(App(Var(">"), Var("x")), Const(1))), TypeVariable())
 
@@ -221,7 +221,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter with ReflectionBasedCo
 			      TypeVariable("$5") =:= context(Var(">")),
 			      TypeVariable("$5") =:= TypeVariable("$6") --> TypeVariable("$3"),
 			      TypeVariable("$3") =:= TypeVariable("$4") --> TypeVariable("$2"),
-			      TypeVariable("$0") =:= TypeVariable("$1") --> TypeVariable("$2"))
+			      TypeVariable("$0") =:= TypeVariable("$1") --> TypeVariable("$2")) map annotateConstraintWithDefaultErrorMessage
 
     val judgement = Judgement(context, Abs(Var("x"), App(App(Var(">"), Var("x")), Const(1))), TypeVariable())
 
@@ -235,7 +235,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter with ReflectionBasedCo
 			      TypeVariable("$5") =:= TypeVariable("$6") --> TypeVariable("$3"),
 			      TypeVariable("$4") =:= BaseType("int"),
 			      TypeVariable("$5") =:= context(Var(">")),
-			      TypeVariable("$6") =:= TypeVariable("$1"))
+			      TypeVariable("$6") =:= TypeVariable("$1")) map annotateConstraintWithDefaultErrorMessage
 
     val judgement = Judgement(context, Abs(Var("x"), App(App(Var(">"), Var("x")), Const(1))), TypeVariable())
 
@@ -249,7 +249,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter with ReflectionBasedCo
 			      TypeVariable("$5") =:= TypeVariable("$6") --> TypeVariable("$3"),
 			      TypeVariable("$4") =:= BaseType("int"),
 			      TypeVariable("$3") =:= TypeVariable("$4") --> TypeVariable("$2"),
-			      TypeVariable("$0") =:= TypeVariable("$1") --> TypeVariable("$2"))
+			      TypeVariable("$0") =:= TypeVariable("$1") --> TypeVariable("$2")) map annotateConstraintWithDefaultErrorMessage
 
     val judgement = Judgement(context, Abs(Var("x"), App(App(Var(">"), Var("x")), Const(1))), TypeVariable())
 
@@ -263,7 +263,7 @@ class FlatteningTest extends FunSuite with BeforeAndAfter with ReflectionBasedCo
 			      TypeVariable("$5") =:= TypeVariable("$6") --> TypeVariable("$3"),
 			      TypeVariable("$5") =:= context(Var(">")),
 			      TypeVariable("$6") =:= TypeVariable("$1"),
-			      TypeVariable("$4") =:= BaseType("int"))
+			      TypeVariable("$4") =:= BaseType("int")) map annotateConstraintWithDefaultErrorMessage
 
     val judgement = Judgement(context, Abs(Var("x"), App(App(Var(">"), Var("x")), Const(1))), TypeVariable())
 

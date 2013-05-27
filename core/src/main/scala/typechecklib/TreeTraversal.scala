@@ -34,7 +34,7 @@ package typechecklib
 import scala.collection.mutable.ListBuffer
 import scala.collection.mutable.Queue
 
-import typechecklib.Constraints.Constraint
+import typechecklib.Constraints.AnnotatedConstraint
 
 import org.kiama.rewriting.Rewriter._
 
@@ -47,7 +47,7 @@ trait TreeTraversal {
   /**
     * Collect all constraints when traversing a deduction tree.
     */
-  def flatten(tree: ConstraintTree): List[Constraint]
+  def flatten(tree: ConstraintTree): List[AnnotatedConstraint]
 }
 
 
@@ -56,8 +56,8 @@ trait TreeTraversal {
   */
 trait DepthFirstPreOrder extends TreeTraversal {
 
-  def flatten(tree: ConstraintTree): List[Constraint] = {
-    val constraints = new ListBuffer[Constraint]()
+  def flatten(tree: ConstraintTree): List[AnnotatedConstraint] = {
+    val constraints = new ListBuffer[AnnotatedConstraint]()
     tree.children.map(t => constraints ++= flatten(t))
     constraints ++= tree.rule.constraints
     constraints.toList
@@ -70,8 +70,8 @@ trait DepthFirstPreOrder extends TreeTraversal {
   */
 trait DepthFirstPostOrder extends TreeTraversal {
 
-  def flatten(tree: ConstraintTree): List[Constraint] = {
-    val constraints = new ListBuffer[Constraint]()
+  def flatten(tree: ConstraintTree): List[AnnotatedConstraint] = {
+    val constraints = new ListBuffer[AnnotatedConstraint]()
     tree.children.reverse.map(t => constraints ++= flatten(t))
     constraints ++= tree.rule.constraints
     constraints.toList
@@ -88,9 +88,9 @@ trait BreadthFirst extends TreeTraversal {
    * Note: The Kiama 'breadthfirst' strategy does not perform a real
    * breadth-first traversal, thus we need to use an own implementation.
    */
-  def flatten(tree: ConstraintTree): List[Constraint] =  { 
+  def flatten(tree: ConstraintTree): List[AnnotatedConstraint] =  { 
     val queue = new Queue[ConstraintTree] 
-    val constraints = new ListBuffer[Constraint]() 
+    val constraints = new ListBuffer[AnnotatedConstraint]() 
     queue += tree
 
     while (! queue.isEmpty) { 
@@ -108,8 +108,8 @@ trait BreadthFirst extends TreeTraversal {
   */
 trait BottomUp extends TreeTraversal {
 
-  def flatten(tree: ConstraintTree): List[Constraint] = {
-    val constraints = new ListBuffer[Constraint]()
+  def flatten(tree: ConstraintTree): List[AnnotatedConstraint] = {
+    val constraints = new ListBuffer[AnnotatedConstraint]()
     bottomup(query {
       case t: ConstraintTree => constraints ++= t.rule.constraints
     })(tree)
@@ -123,8 +123,8 @@ trait BottomUp extends TreeTraversal {
   */
 trait TopDown extends TreeTraversal {
 
-  def flatten(tree: ConstraintTree): List[Constraint] = {
-    val constraints = new ListBuffer[Constraint]()
+  def flatten(tree: ConstraintTree): List[AnnotatedConstraint] = {
+    val constraints = new ListBuffer[AnnotatedConstraint]()
     topdown(query {
       case t: ConstraintTree => constraints ++= t.rule.constraints
     })(tree)

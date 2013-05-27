@@ -34,7 +34,7 @@ package typechecklib
 import typechecklib.Syntax._
 import typechecklib.Substitutions._
 import typechecklib.Errors._
-import typechecklib.Constraints.Constraint
+import typechecklib.Constraints.{AnnotatedConstraint, Constraint}
 
 
 /**
@@ -48,7 +48,7 @@ trait ConstraintSolver {
     * @return If all constraints can be solved, a substitution encapsulating the results
     *         of the solved constraints
     */
-  def solveConstraints(constraints: List[Constraint]): Either[Error, Substitution]
+  def solveConstraints(constraints: List[AnnotatedConstraint]): Either[Error, Substitution]
 }
 
 
@@ -62,7 +62,7 @@ trait TraceableConstraintSolver extends ConstraintSolver {
     *
     * @return Every intermediate result of the constraint solving process
     */
-  def traceSolver(constraints: List[Constraint]): List[IntermediateResult]
+  def traceSolver(constraints: List[AnnotatedConstraint]): List[IntermediateResult]
 
   /**
     * Solve the given constraints.
@@ -70,7 +70,7 @@ trait TraceableConstraintSolver extends ConstraintSolver {
     * @return If all constraints can be solved, a substitution encapsulating the results
     *         of the solved constraints
     */
-  override def solveConstraints(constraints: List[Constraint]): Either[Error, Substitution] = traceSolver(constraints) match {
+  override def solveConstraints(constraints: List[AnnotatedConstraint]): Either[Error, Substitution] = traceSolver(constraints) match {
     case Nil     => Right(new Substitution)
     case results => results.last match {
       case IntermediateResult(_, Left(error), _, _) => Left(error)
@@ -96,15 +96,16 @@ trait LinearConstraintSolver extends ConstraintSolver {
   /**
     *  Solve the generated constraints and return the possibly arisen substitution.
     */
-  def solveConstraints(constraints: List[Constraint]): Either[Error, Substitution] = {
+  def solveConstraints(constraints: List[AnnotatedConstraint]): Either[Error, Substitution] = {
     var σ = new Substitution
     var unsolvedConstraints = constraints
 
     while (!unsolvedConstraints.isEmpty) {
-      val constraint = unsolvedConstraints.head
+      val constraint = unsolvedConstraints.head.constraint
+      val errorMessage = unsolvedConstraints.head.errorMsg
 
       if (!constraint.isSolveable) {
-        return Left(UnsolvableConstraintError(constraint))
+        return Left(UnsolvableConstraintError(AnnotatedConstraint(constraint, errorMessage)))
       } else {
         /* Evaluate all meta-level type functions in this constraint */
         val evaluatedConstraint = evaluateMetaFun(constraint)
@@ -113,7 +114,7 @@ trait LinearConstraintSolver extends ConstraintSolver {
             σ = φ ++ σ
             unsolvedConstraints = σ(unsolvedConstraints.tail)
           }
-          case None => return Left(NoSolutionError(evaluatedConstraint))
+          case None => return Left(NoSolutionError(AnnotatedConstraint(evaluatedConstraint, errorMessage)))
         }
       }
     }
@@ -135,17 +136,19 @@ trait TraceableLinearConstraintSolver extends LinearConstraintSolver with Tracea
     *
     * @return Every intermediate result of the constraint solving process
     */
-  def traceSolver(constraints: List[Constraint]): List[IntermediateResult] = {
+  def traceSolver(constraints: List[AnnotatedConstraint]): List[IntermediateResult] = {
     var σ = new Substitution
     var unsolvedConstraints = constraints
     var intermediateResults: List[IntermediateResult] = Nil
 
     while (!unsolvedConstraints.isEmpty) {
-      val constraint = unsolvedConstraints.head
+      val constraint = unsolvedConstraints.head.constraint
+      val errorMessage = unsolvedConstraints.head.errorMsg
 
       if (!constraint.isSolveable) {
-	val errorResult = IntermediateResult(constraint, Left(UnsolvableConstraintError(constraint)), σ, unsolvedConstraints.tail)
-        return intermediateResults :+ errorResult
+	val error = Left(UnsolvableConstraintError(AnnotatedConstraint(constraint, errorMessage)))
+	val remainingConstraints = unsolvedConstraints.tail.map(_.constraint)
+        return intermediateResults :+ IntermediateResult(constraint, error, σ, remainingConstraints)
       } else {
         /* Evaluate all meta-level type functions in this constraint */
         val evaluatedConstraint = evaluateMetaFun(constraint)
@@ -153,11 +156,12 @@ trait TraceableLinearConstraintSolver extends LinearConstraintSolver with Tracea
           case Some(φ) => {
             σ = φ ++ σ
             unsolvedConstraints = σ(unsolvedConstraints.tail)
-	    intermediateResults = intermediateResults :+ IntermediateResult(evaluatedConstraint, Right(φ), σ, unsolvedConstraints)
+	    intermediateResults = intermediateResults :+ IntermediateResult(evaluatedConstraint, Right(φ), σ, unsolvedConstraints.map(_.constraint))
           }
           case None => {
-	    val errorResult = IntermediateResult(evaluatedConstraint, Left(NoSolutionError(evaluatedConstraint)), σ, unsolvedConstraints.tail)
-	    return intermediateResults :+ errorResult
+	    val error = Left(NoSolutionError(AnnotatedConstraint(evaluatedConstraint, errorMessage)))
+	    val remainingConstraints = unsolvedConstraints.tail.map(_.constraint)
+	    return intermediateResults :+ IntermediateResult(evaluatedConstraint, error, σ, remainingConstraints)
 	  }
         }
       }

@@ -34,7 +34,7 @@ package typechecklib
 import scala.language.implicitConversions
 
 import typechecklib.Types.{Type}
-import typechecklib.Constraints.{Constraint}
+import typechecklib.Constraints.{AnnotatedConstraint}
 
 import org.kiama.rewriting.Rewriter._
 
@@ -62,7 +62,7 @@ object Rules {
     /**
       * The constraints of this rule. 
       */
-    var constraints: List[Constraint] = Nil
+    var constraints: List[AnnotatedConstraint] = Nil
 
     /**
       * The name of this rule.
@@ -88,7 +88,7 @@ object Rules {
 	this
       }
 
-      def |(cs: Constraint*) {
+      def |(cs: AnnotatedConstraint*) {
 	constraints = cs.toList
       }
     }
@@ -132,7 +132,7 @@ object Rules {
       */
     protected implicit class AxiomBuilder(c: Judgement) {
       
-      def |(cs: Constraint*) {
+      def |(cs: AnnotatedConstraint*) {
 	conclusion = c
 	constraints = cs.toList
       }

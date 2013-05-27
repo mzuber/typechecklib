@@ -95,18 +95,9 @@ object Constraints {
     def isSolveable: Boolean = true
 
     /**
-      * An [[typechecklib.Constraints.ErrorMessage ErrorMessage]] which
-      * can be displayed in case the constraint cannot be solve.
-      */
-    var errorMsg: ErrorMessage = "Error: Could not solve " + this.toString
-
-    /**
       * Attach an error message to a constraint.
       */
-    def |(msg: ErrorMessage): this.type = {
-      errorMsg = msg
-      this
-    }
+    def |(msg: ErrorMessage): AnnotatedConstraint = AnnotatedConstraint(this, msg)
 
     /**
       * Defines a disjunction of this and the given constraints.
@@ -117,6 +108,20 @@ object Constraints {
       * Defines a conjunction of this and the given constraints.
       */
     def ∨(that: Constraint): And = And(this, that)
+  }
+
+
+  /**
+    * A constraint annotated with an [[typechecklib.Constraints.ErrorMessage ErrorMessage]]
+    * which can be displayed if constraint cannot be solve.
+    */
+  case class AnnotatedConstraint(constraint: Constraint, errorMsg: ErrorMessage)
+
+  /**
+    * Annotate a constraint with a default error message.
+    */
+  implicit def annotateConstraintWithDefaultErrorMessage(constraint: Constraint) = {
+    AnnotatedConstraint(constraint, "Couldn't solve: " + constraint)
   }
 
 
