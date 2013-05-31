@@ -56,7 +56,7 @@ object Substitutions {
       */
     def this(elems: (TypeVariable, Type)*) = this(elems.toMap)
 
-
+    
     /**
       * Generic application of this substitution.
       * 
@@ -64,7 +64,7 @@ object Substitutions {
       */
     def apply[T](elem: T): T = {
       val applySubst = rule { case tv: TypeVariable => sub.getOrElse(tv, tv) }
-      
+
       everywhere(applySubst)(elem).getOrElse(elem) match {
 	case t: T @unchecked => t
       }

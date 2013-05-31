@@ -90,6 +90,7 @@ object SimpleLambda {
 
   /*
    * Typing rule for application.
+   * 
    *    Γ ⊢ f : T1     Γ ⊢ e : T2     T1 = T2 -> T
    *   -------------------------------------------- (App)
    *                  Γ ⊢ (f) e : T

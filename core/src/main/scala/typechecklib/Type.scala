@@ -61,7 +61,7 @@ object Types {
       * All type variables occuring free, i.e., not bound
       * by the quantifier of a type scheme, in this type.
       */
-    def freeVars: List[TypeVariable] = freeVars(Nil)
+    def freeVars: List[TypeVariable] = freeVars(Nil).distinct
 
     /**
       * All type variables occuring free in this type with
@@ -73,14 +73,14 @@ object Types {
       * All type variables occuring not free, i.e., bound
       * by a quantifier of a type scheme, in this type.
       */
-    def boundVars: List[TypeVariable] = vars diff freeVars
+    def boundVars: List[TypeVariable] = (vars diff freeVars).distinct
 
     /**
       * Generalize this type with respect to an outer context,
       * i.e., bind all free type variables in a type scheme.
       */
     def generalize(ctx: Context): TypeScheme = {
-      val freeVars = this.freeVars diff ctx.freeVars
+      val freeVars = (this.freeVars diff ctx.freeVars).distinct
 
       this match {
 	case TypeScheme(vars, ty) => TypeScheme(vars union freeVars, ty)
