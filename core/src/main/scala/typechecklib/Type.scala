@@ -36,6 +36,7 @@ import scala.collection.immutable.List.fill
 
 import typechecklib._
 import typechecklib.Syntax._
+import typechecklib.Substitutions.Substitution
 
 import org.kiama.rewriting.Rewriter._
 
@@ -54,7 +55,7 @@ object Types {
       * All type variables occuring in this type term.
       */
     def vars: List[TypeVariable] = {
-      collectl{ case tv: TypeVariable => tv }(this)
+      collectl{ case tv: TypeVariable => tv }(this).distinct
     }
 
     /**
@@ -85,6 +86,24 @@ object Types {
       this match {
 	case TypeScheme(vars, ty) => TypeScheme(vars union freeVars, ty)
 	case _                    => TypeScheme(freeVars, this)
+      }
+    }
+
+    /**
+      * Apply the given substitution to this type.
+      *
+      * This default implementation of this method applies
+      * the substiution to all type variables occuring free
+      * in this type.
+      */
+    def substitute(σ: Substitution): Type = {
+      // Remove the bound variables of this type from the substitution
+      val φ = σ -- this.boundVars
+
+      val substituteTypeVar = rule { case tv: TypeVariable => φ(tv) }
+
+      everywhere(substituteTypeVar)(this).getOrElse(this) match {
+	case t: Type @unchecked => t
       }
     }
 

@@ -47,8 +47,8 @@ class SubstitutionTest extends FunSuite {
    */
   val int = BaseType("Int")
   val bool = BaseType("Bool")
-  val α = new TypeVariable("alpha")
-  val β = new TypeVariable("beta")
+  val α = TypeVariable("alpha")
+  val β = TypeVariable("beta")
 
 
   test("Apply substitution to type variable: {α/Int}(α)") {
@@ -91,8 +91,23 @@ class SubstitutionTest extends FunSuite {
     assert(TypeConstructor("Pair", List(int, bool)) === σ(TypeConstructor("Pair", List(α, β))))
   }
 
+  test("Apply substitution to type scheme: {α/Int, β/Bool}(forall α. α)") {
+    val σ = new Substitution(β -> bool, α -> int)
+    assert(forall(β)(β) === σ(forall(β)(β)))
+  }
+
+  test("Apply substitution to type scheme: {α/β}(forall α. α)") {
+    val σ = new Substitution(α -> β)
+    assert(forall(α)(α) === σ(forall(α)(α)))
+  }
+
   test("Apply substitution to equality constraint: {α/Int, β/Bool}(α = β)") {
     val σ = new Substitution(β -> bool, α -> int)
     assert(int =:= bool === σ(α =:= β))
+  }
+
+  test("Apply substitution to equality constraint: {α/β}(forall α. α = forall α. α)") {
+    val σ = new Substitution(α -> β)
+    assert(forall(α)(α) =:= forall(α)(α) === σ(forall(α)(α) =:= forall(α)(α)))
   }
 }

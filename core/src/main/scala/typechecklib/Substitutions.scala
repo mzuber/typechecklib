@@ -32,6 +32,7 @@
 package typechecklib
 
 import scala.language.implicitConversions
+import scala.collection.GenTraversableOnce
 
 import typechecklib.Types._
 
@@ -56,6 +57,12 @@ object Substitutions {
       */
     def this(elems: (TypeVariable, Type)*) = this(elems.toMap)
 
+
+    /**
+      * Apply this substitution to the given type variable.
+      */
+    def apply(tvar: TypeVariable): Type = sub.getOrElse(tvar, tvar)
+
     
     /**
       * Generic application of this substitution.
@@ -63,8 +70,15 @@ object Substitutions {
       * Apply this substitution to an element and all its children. 
       */
     def apply[T](elem: T): T = {
-      val applySubst = rule { case tv: TypeVariable => sub.getOrElse(tv, tv) }
+      val applySubst = rule { case ty: Type => ty.substitute(this) }
 
+      /*
+       * We can't really use everywhere at this point. In case of
+       * any recursive type structure, e.g. type schemes, the
+       * substitution will be applied to all children of this type
+       * term. This behaviour is not desired, in the case of type
+       * schemes it even yields to wrong results.
+       */
       everywhere(applySubst)(elem).getOrElse(elem) match {
 	case t: T @unchecked => t
       }
@@ -73,7 +87,7 @@ object Substitutions {
     
     /**
       * Composition of substitutions, defined as
-      *{{{
+      * {{{
       * σ ++ φ = v |-> σ(t), for φ(v) = t
       *          v |-> t   , for σ(v) = t and v is not element in the domain of φ
       * }}}
@@ -91,6 +105,20 @@ object Substitutions {
       * If the key already exists, its replaced.
       */
     def +(mapping: (TypeVariable, Type)) = Substitution(this.sub + mapping)
+
+
+    /**
+      * Remove the mapping containing the given type variable
+      * from this substitution.
+      */
+    def -(tvar: TypeVariable) = Substitution(this.sub - tvar)
+
+
+    /**
+      * Remove all mappings containing the given type variables
+      * from this substitution.
+      */
+    def --(tvars: GenTraversableOnce[TypeVariable]) = Substitution(this.sub -- tvars)
 
 
     /**
