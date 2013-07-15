@@ -100,9 +100,12 @@ object Types {
       // Remove the bound variables of this type from the substitution
       val φ = σ -- this.boundVars
 
-      val substituteTypeVar = rule { case tv: TypeVariable => φ(tv) }
+      def substituteTypeVar: Strategy = rule {
+          case tv: TypeVariable => φ(tv)
+          case x => all(substituteTypeVar)(x).get
+        }
 
-      everywhere(substituteTypeVar)(this).getOrElse(this) match {
+      substituteTypeVar(this).getOrElse(this) match {
 	case t: Type @unchecked => t
       }
     }
