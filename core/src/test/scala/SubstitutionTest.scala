@@ -91,7 +91,7 @@ class SubstitutionTest extends FunSuite {
     assert(TypeConstructor("Pair", List(int, bool)) === σ(TypeConstructor("Pair", List(α, β))))
   }
 
-  test("Apply substitution to type scheme: {α/Int, β/Bool}(forall α. α)") {
+  test("Apply substitution to type scheme: {α/Int, β/Bool}(forall β. β)") {
     val σ = new Substitution(β -> bool, α -> int)
     assert(forall(β)(β) === σ(forall(β)(β)))
   }

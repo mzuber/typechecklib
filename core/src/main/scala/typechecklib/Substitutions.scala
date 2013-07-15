@@ -70,7 +70,11 @@ object Substitutions {
       * Apply this substitution to an element and all its children. 
       */
     def apply[T](elem: T): T = {
-      val applySubst = rule { case ty: Type => ty.substitute(this) }
+      def applySubst : Strategy = 
+        rule { 
+          case ty: Type => ty.substitute(this)
+          case x => all(applySubst)(x).get
+        }
 
       /*
        * We can't really use everywhere at this point. In case of
@@ -79,7 +83,7 @@ object Substitutions {
        * term. This behaviour is not desired, in the case of type
        * schemes it even yields to wrong results.
        */
-      everywhere(applySubst)(elem).getOrElse(elem) match {
+      applySubst(elem).getOrElse(elem) match {
 	case t: T @unchecked => t
       }
     }
