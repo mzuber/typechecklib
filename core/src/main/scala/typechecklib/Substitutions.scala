@@ -75,14 +75,6 @@ object Substitutions {
           case ty: Type => ty.substitute(this)
           case x => all(applySubst)(x).get
         }
-
-      /*
-       * We can't really use everywhere at this point. In case of
-       * any recursive type structure, e.g. type schemes, the
-       * substitution will be applied to all children of this type
-       * term. This behaviour is not desired, in the case of type
-       * schemes it even yields to wrong results.
-       */
       applySubst(elem).getOrElse(elem) match {
 	case t: T @unchecked => t
       }
