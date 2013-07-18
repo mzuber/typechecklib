@@ -101,9 +101,9 @@ object Types {
       val φ = σ -- this.boundVars
 
       def substituteTypeVar: Strategy = rule {
-          case tv: TypeVariable => φ(tv)
-          case x => all(substituteTypeVar)(x).get
-        }
+        case tv: TypeVariable => φ(tv)
+        case x => all(substituteTypeVar)(x).get
+      }
 
       substituteTypeVar(this).getOrElse(this) match {
 	case t: Type @unchecked => t
@@ -223,6 +223,8 @@ object Types {
 
     def freeVars(boundVars: List[TypeVariable]) = Nil
 
+    override def substitute(σ: Substitution): Type = TypeFunction1[T](σ(f))
+
     def apply() = f.apply
   }
 
@@ -234,6 +236,8 @@ object Types {
 
     def freeVars(boundVars: List[TypeVariable]) = Nil
 
+    override def substitute(σ: Substitution): Type = TypeFunction2[S,T](σ(f))
+
     def apply() = f.apply
   }
 
@@ -244,6 +248,8 @@ object Types {
   case class TypeFunction[T <: Product](f: MetaFun[T, Type]) extends Type {
 
     def freeVars(boundVars: List[TypeVariable]) = Nil
+
+    override def substitute(σ: Substitution): Type = TypeFunction[T](σ(f))
 
     def apply() = f.apply
   }

@@ -51,7 +51,6 @@ object Syntax {
     * A class for simple, String-based identifiers.
     */
   case class SimpleIde(ide: String) extends Ide {
-  //  override def toString = "\"" + ide + "\""
     override def toString = ide 
   }
 

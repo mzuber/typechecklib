@@ -70,11 +70,16 @@ object Substitutions {
       * Apply this substitution to an element and all its children. 
       */
     def apply[T](elem: T): T = {
-      def applySubst : Strategy = 
-        rule { 
-          case ty: Type => ty.substitute(this)
-          case x => all(applySubst)(x).get
-        }
+
+      /*
+       * Define a strategy which treats Type nodes as leafs, i.e., the children
+       * of Type nodes will not be processed by this strategy any more.
+       */
+      def applySubst : Strategy = rule { 
+        case ty: Type => ty.substitute(this)
+        case x => all(applySubst)(x).get
+      }
+
       applySubst(elem).getOrElse(elem) match {
 	case t: T @unchecked => t
       }

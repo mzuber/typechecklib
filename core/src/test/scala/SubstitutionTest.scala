@@ -110,4 +110,20 @@ class SubstitutionTest extends FunSuite {
     val σ = new Substitution(α -> β)
     assert(forall(α)(α) =:= forall(α)(α) === σ(forall(α)(α) =:= forall(α)(α)))
   }
+
+  test("Apply substitution to unary meta-level type function: {α/β}(id(α)") {
+    val σ = new Substitution(α -> β)
+    val f = (t: Type) => t
+    def id(t: Type): Type = TypeFunction1(MetaFun1(f, t))
+
+    assert(id(β) === σ(id(α)))
+  }
+
+  test("Apply substitution to binary meta-level type function: {α/β}(pair(α,β)") {
+    val σ = new Substitution(α -> β)
+    val f = (s: Type, t: Type) => TupleType(List(s, t))
+    def pair(s: Type, t: Type): Type = TypeFunction2(MetaFun2(f, (s, t)))
+
+    assert(pair(β, β) === σ(pair(α, β)))
+  }
 }
