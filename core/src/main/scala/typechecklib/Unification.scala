@@ -31,11 +31,17 @@
 
 package typechecklib
 
+import scala.collection.mutable.ListBuffer
+
 import org.kiama.rewriting.Rewriter._
+
 import typechecklib.Types._
-import scala.collection.mutable._
 import typechecklib.Substitutions._
 
+
+/**
+  * Generic Unification of type terms and values containing types (e.g. lists of types).
+  */
 object Unification {
 
   /**
@@ -45,11 +51,10 @@ object Unification {
 
 
   /**
-   * The default implementation of the unify method,
-   * that works with every type.
-   * Make sure to always use this to call unify,
-   * to make sure the right implementation is used.
-   */
+    * The default implementation of the unify method that works with every type.
+    * 
+    * Make sure to always use this to call unify to ensure the right implementation is used.
+    */
   object DefaultUnification extends Unifiable {
     def unify[T](x: T, y: T): (Boolean, Substitution) = (x, y) match {
       case (x1: Unifiable, y1) => x1.unify(x1, y1)
@@ -60,57 +65,65 @@ object Unification {
 
 
   /**
-   * A unification returns a boolean and a [[typechecklib.Substitutions.Substitution substitution]].
-   * The boolean signals the success.
-   * Succeeds if x any y are equal or if every difference
-   * has at least a [typechecklib.Types.TypeVariable TypeVariable]] at either side.
-   * Types that need special handling in a Unification
-   * can mix-in this trait to override the default behavior.
-   */
+    * Unification of two values returns a Boolean (signaling success or failure) and
+    * a [[typechecklib.Substitutions.Substitution substitution]].
+    * 
+    * Types that need special handling regarding unification can mix-in this trait to override the default behavior.
+    */
   trait Unifiable {
 
     /**
-     * Unify arbitrary objects.
-     */
+      * Unify arbitrary objects of the same type.
+      */
     def unify[T](x: T, y: T): (Boolean, Substitution)
 
     /**
-     * Default unification for objects that don't
-     * mix-in this trait. Don't call directly, instead
-     * use [[typechecklib.Unification.DefaultUnification DefaultUnification.unify]].
-     */
-    protected def unifyDefault(x: Any, y: Any): (Boolean, Substitution) = {
-      (x, y) match {
-        case (x, y) if x == y => (true, new Substitution)
-        case (x: TypeVariable, y : Type) => unifyVar(x, y)
-        case (x: Type, y: TypeVariable) => unifyVar(y, x)
-        case (x, y) if x.getClass() == y.getClass() &&
-          arity(x) == arity(y) => unifyAny(x, y)
-        case _ => (false, new Substitution)
+      * Default unification for objects that don't mix-in this trait.
+      *
+      * Don't call directly, instead use [[typechecklib.Unification.DefaultUnification DefaultUnification.unify]].
+      */
+    protected def unifyDefault(x: Any, y: Any): (Boolean, Substitution) = (x, y) match {
+      case (x, y) if x == y            => (true, new Substitution)
+      case (x: TypeVariable, y : Type) => unifyVar(x, y)
+      case (x: Type, y: TypeVariable)  => unifyVar(y, x)
+      case (x, y) if x.getClass() == y.getClass() &&
+                     arity(x) == arity(y) => unifyAny(x, y)
+      case _ => (false, new Substitution)
+    }
+
+    /**
+      * Unification of objects that have the same type by trying to unify the children.
+      */
+    protected def unifyAny(x: Any, y: Any): (Boolean, Substitution) = {
+      val xChildren = getChildren(x)
+      val yChildren = getChildren(y)
+
+      if (xChildren.isEmpty)
+        (x == y, new Substitution)
+      else
+	unifyLists(xChildren, yChildren)
+    }
+
+    /**
+      * Unify two lists with elements of the same type by unifying their elements step by step.
+      */
+    protected def unifyLists[T](list1: List[T], list2: List[T]): (Boolean, Substitution) = (list1, list2) match {
+      case (Nil, Nil)    => (true, new Substitution)
+      case (Nil, _ :: _) => (false, new Substitution)
+      case (_ :: _, Nil) => (false, new Substitution)
+      case (x :: xs, y :: ys) => {
+	val (b, σ) = unify(x, y)
+
+	if (b)
+	  combineUnifier((b, σ), unifyLists(σ(xs), σ(ys)))
+	else 
+	  (false, new Substitution)
       }
     }
 
     /**
-     * Unification for objects that have the same
-     * type and number of children.
-     * Tries to unify the children.
-     */
-    protected def unifyAny(x: Any, y: Any): (Boolean, Substitution) = {
-      val xc = getChildren(x)
-      val yc = getChildren(y)
-
-      if (xc.isEmpty)
-        return (x == y, new Substitution)
-
-      val xy = xc zip yc
-      val bs = xy map (Function.tupled(unify))
-      ((true, new Substitution) /: bs)((b, a) =>
-        (b._1 && a._1, b._2 ++ a._2))
-    }
-
-    /**
-     *  Unification with a TypeVariable
-     */
+      *  Unification of a TypeVariable and a Type.
+      */
     protected def unifyVar(x: TypeVariable, r: Type): (Boolean, Substitution) = {
       if (x == r) {
         (true, new Substitution)
@@ -123,16 +136,18 @@ object Unification {
     }
 
     /**
-     * Whenever x occurs in y
-     */
+      * Occurs check for two values.
+      *
+      * @return True, if 'x' occurs in 'y'.
+      */
     protected def occursIn[T](x: T, y: T): Boolean = oncebu(
       strategy {
         case a if a == x => Some(a)
       })(y) != None
 
     /**
-     * Number of children.
-     */
+      * Number of children of the given value.
+      */
     protected def arity(x: Any): Int = {
       var c = 0;
       all(queryf {
@@ -141,6 +156,9 @@ object Unification {
       c
     }
 
+    /**
+      * Get the children of the given value.
+      */
     protected def getChildren(x: Any): List[Any] = {
       val l = new ListBuffer[Any]()
       all(queryf {
@@ -148,5 +166,10 @@ object Unification {
       })(x)
       l.toList
     }
+
+    /**
+      * Convenience function to combine the results of two unify calls.
+      */
+    protected def combineUnifier(u: (Boolean, Substitution), v: (Boolean, Substitution)): (Boolean, Substitution) = (u._1 && v._1, v._2 ++ u._2)
   }
 }
