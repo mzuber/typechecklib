@@ -66,6 +66,12 @@ trait DepthFirstPreOrder extends TreeTraversal {
 
 
 /**
+  * Companion object for the pre-order depth-first traversal trait.
+  */
+object DepthFirstPreOrder
+
+
+/**
   * Post-order depth-first traversal of a deduction tree.
   */
 trait DepthFirstPostOrder extends TreeTraversal {
@@ -77,6 +83,12 @@ trait DepthFirstPostOrder extends TreeTraversal {
     constraints.toList
   }
 }
+
+
+/**
+  * Companion object for the post-order depth-first traversal trait.
+  */
+object DepthFirstPostOrder
 
 
 /**
@@ -104,6 +116,12 @@ trait BreadthFirst extends TreeTraversal {
 
 
 /**
+  * Companion object for the breadth-first traversal trait.
+  */
+object BreadthFirst
+
+
+/**
   * Bottom-up traversal of a deduction tree.
   */
 trait BottomUp extends TreeTraversal {
@@ -119,6 +137,12 @@ trait BottomUp extends TreeTraversal {
 
 
 /**
+  * Companion object for the bottom-up traversal trait.
+  */
+object BottomUp
+
+
+/**
   * Top-down traversal of a deduction tree.
   */
 trait TopDown extends TreeTraversal {
@@ -131,3 +155,9 @@ trait TopDown extends TreeTraversal {
     constraints.toList
   }
 }
+
+
+/**
+  * Companion object for the top-down traversal trait.
+  */
+object TopDown
