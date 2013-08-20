@@ -39,6 +39,7 @@ import typechecklib.Syntax._
 import typechecklib.Substitutions.Substitution
 
 import org.kiama.rewriting.Rewriter._
+import org.kiama.rewriting.Strategy
 
 
 /**

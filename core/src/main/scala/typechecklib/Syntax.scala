@@ -36,6 +36,8 @@ import scala.language.implicitConversions
 import typechecklib.Types.{TypeFunction, TypeFunction1, TypeFunction2}
 
 import org.kiama.rewriting.Rewriter._
+import org.kiama.rewriting.Strategy
+
 
 /**
   * Common functionality for abstract syntax.
@@ -98,7 +100,7 @@ object Syntax {
     *             this function evaluates meta-level functions evaluating to types. This hook can
     *             be used to handle user-defined data types encapsulating meta-level auxiliary functions.
     */
-  def evaluateMetaFun[T](term: T, eval: PartialFunction[Term, Term] = evalTypeFunction): T = {
+  def evaluateMetaFun[T](term: T, eval: PartialFunction[Any, Any] = evalTypeFunction): T = {
     val evalMetaFun: Strategy = rule(eval)
 
     everywhere(evalMetaFun)(term).getOrElse(term) match {
@@ -106,7 +108,7 @@ object Syntax {
     }
   }
 
-  private def evalTypeFunction: PartialFunction[Term, Term] = {
+  private def evalTypeFunction: PartialFunction[Any, Any] = {
     case f: TypeFunction1[_]    => f.apply
     case f: TypeFunction2[_, _] => f.apply
     case f: TypeFunction[_]     => f.apply

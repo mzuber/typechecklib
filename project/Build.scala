@@ -12,7 +12,7 @@ object BuildSettings {
 object Dependencies {
   val reflect = (scalaVersion)("org.scala-lang" % "scala-reflect" % _)
   val scalatest = "org.scalatest" % "scalatest_2.10" % "2.0.M5b"
-  val kiama = "com.googlecode.kiama" % "kiama_2.10" % "1.4.0"
+  val kiama = "com.googlecode.kiama" %% "kiama" % "1.5.1"
 }
 
 object TypeCheckLibBuild extends Build {

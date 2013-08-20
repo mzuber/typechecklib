@@ -37,6 +37,7 @@ import scala.collection.GenTraversableOnce
 import typechecklib.Types._
 
 import org.kiama.rewriting.Rewriter._
+import org.kiama.rewriting.Strategy
 
 
 /**
