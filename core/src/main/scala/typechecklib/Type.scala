@@ -106,7 +106,7 @@ object Types {
         case x => all(substituteTypeVar)(x).get
       }
 
-      substituteTypeVar(this).getOrElse(this) match {
+      substituteTypeVar(this).get match {
 	case t: Type @unchecked => t
       }
     }
