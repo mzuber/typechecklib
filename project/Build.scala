@@ -4,15 +4,15 @@ import Keys._
 object BuildSettings {
   val buildSettings = Defaults.defaultSettings ++ Seq(
     version := "0.1",
-    scalaVersion := "2.10.2",
+    scalaVersion := "2.10.4",
     scalacOptions ++= Seq("-deprecation", "-feature"  /*, "-Ymacro-debug-lite" */)
   )
 }
 
 object Dependencies {
   val reflect = (scalaVersion)("org.scala-lang" % "scala-reflect" % _)
-  val scalatest = "org.scalatest" % "scalatest_2.10" % "2.0.M5b"
-  val kiama = "com.googlecode.kiama" %% "kiama" % "1.5.1"
+  val scalatest = "org.scalatest" % "scalatest_2.10" % "2.2.1"
+  val kiama = "com.googlecode.kiama" %% "kiama" % "1.5.2"
 }
 
 object TypeCheckLibBuild extends Build {

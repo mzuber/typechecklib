@@ -34,6 +34,7 @@ package typechecklib
 import scala.collection.mutable.ListBuffer
 
 import org.kiama.rewriting.Rewriter._
+import org.kiama.==>
 
 import typechecklib.Types._
 import typechecklib.Substitutions._
@@ -140,10 +141,13 @@ object Unification {
       *
       * @return True, if 'x' occurs in 'y'.
       */
-    protected def occursIn[T](x: T, y: T): Boolean = oncebu(
-      strategy {
+    protected def occursIn[T](x: T, y: T): Boolean = {
+      val compare: Any ==> Option[Any] = {
         case a if a == x => Some(a)
-      })(y) != None
+      }
+
+      oncebu(strategy(compare))(y) != None
+    }
 
     /**
       * Number of children of the given value.

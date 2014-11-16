@@ -37,6 +37,7 @@ import scala.collection.mutable.Queue
 import typechecklib.Constraints.AnnotatedConstraint
 
 import org.kiama.rewriting.Rewriter._
+import org.kiama.==>
 
 
 /**
@@ -128,9 +129,10 @@ trait BottomUp extends TreeTraversal {
 
   def flatten(tree: ConstraintTree): List[AnnotatedConstraint] = {
     val constraints = new ListBuffer[AnnotatedConstraint]()
-    bottomup(query {
+    val collectConstraints: Any ==> Unit = {
       case t: ConstraintTree => constraints ++= t.rule.constraints
-    })(tree)
+    }
+    bottomup(query(collectConstraints))(tree)
     constraints.toList
   }
 }
@@ -149,9 +151,10 @@ trait TopDown extends TreeTraversal {
 
   def flatten(tree: ConstraintTree): List[AnnotatedConstraint] = {
     val constraints = new ListBuffer[AnnotatedConstraint]()
-    topdown(query {
+    val collectConstraints: Any ==> Unit = {
       case t: ConstraintTree => constraints ++= t.rule.constraints
-    })(tree)
+    }
+    topdown(query(collectConstraints))(tree)
     constraints.toList
   }
 }

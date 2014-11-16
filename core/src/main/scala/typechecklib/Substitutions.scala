@@ -38,6 +38,7 @@ import typechecklib.Types._
 
 import org.kiama.rewriting.Rewriter._
 import org.kiama.rewriting.Strategy
+import org.kiama.==>
 
 
 /**
@@ -76,9 +77,12 @@ object Substitutions {
        * Define a strategy which treats Type nodes as leafs, i.e., the children
        * of Type nodes will not be processed by this strategy any more.
        */
-      def applySubst : Strategy = rule { 
-        case ty: Type => ty.substitute(this)
-        case x => all(applySubst)(x).get
+      def applySubst : Strategy = {
+        val substituteTVar: Any ==> Any = { 
+          case ty: Type => ty.substitute(this)
+          case x => all(applySubst)(x).get
+        }
+        rule(substituteTVar)
       }
 
       applySubst(elem).getOrElse(elem) match {

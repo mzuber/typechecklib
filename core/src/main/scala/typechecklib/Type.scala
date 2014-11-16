@@ -40,6 +40,7 @@ import typechecklib.Substitutions.Substitution
 
 import org.kiama.rewriting.Rewriter._
 import org.kiama.rewriting.Strategy
+import org.kiama.==>
 
 
 /**
@@ -101,9 +102,12 @@ object Types {
       // Remove the bound variables of this type from the substitution
       val φ = σ -- this.boundVars
 
-      def substituteTypeVar: Strategy = rule {
-        case tv: TypeVariable => φ(tv)
-        case x => all(substituteTypeVar)(x).get
+      def substituteTypeVar: Strategy = {
+        val applySubst: Any ==> Any = {
+          case tv: TypeVariable => φ(tv)
+          case x => all(substituteTypeVar)(x).get
+        }
+        rule(applySubst)
       }
 
       substituteTypeVar(this).get match {
