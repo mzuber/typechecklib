@@ -7,6 +7,10 @@ A Scala library providing means to derive type checkers from constraint-based in
 - A set of basic, predefined strategies for rule instantiation (e.g. reflection-based), deduction tree traversal
   (e.g. depth-first, breadth-first, bottom-up, top-down), and constraint solving (e.g. linear order).
 
+This project builds on and evolves the concepts presented in
+[Deriving Type Checkers](https://github.com/mzuber/deriving-type-checkers)
+(Technical Report 2012–09, TU Berlin, 2012).
+
 Installation
 ------------
 
